@@ -17,13 +17,6 @@ public class Reservation {
     private int guestId;
     private BigDecimal total;
 
-    public Reservation(int parseInt, LocalDate parse, LocalDate parse1, int parseInt1, BigDecimal valueOf) {
-    }
-
-    public Reservation() {
-
-    }
-
     public void setGuestId(int guestId) {
         this.guestId = guestId;
     }

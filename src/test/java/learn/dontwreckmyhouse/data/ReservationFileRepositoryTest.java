@@ -44,7 +44,7 @@ class ReservationFileRepositoryTest {
         reservation.setReservationId(13);
         reservation.setStartDate(LocalDate.ofEpochDay(2022-01-24));
         reservation.setEndDate(LocalDate.ofEpochDay(2022-01-28));
-        reservation.setGuest(15);
+        reservation.setGuestId(15);
         reservation.setTotal(BigDecimal.valueOf(1400));
 
         reservation = repository.add(reservation);
@@ -54,18 +54,15 @@ class ReservationFileRepositoryTest {
 
     @Test
     void update() throws DataException {
-        Reservation reservation = repository.f(2);
+        Reservation reservation = repository.findByReservationId(2, UUID.fromString("2e72f86c-b8fe-4265-b4f1-304dea8762db"));
         reservation.setGuestId(137);
         assertTrue(repository.update(reservation));
-
-        reservation = repository.findById(2);
-        assertNotNull(reservation);                        // confirm the memory exists
-        assertEquals("Sherwin", reservation.getFrom());    // confirm the memory was updated
-        assertFalse(reservation.isShareable());
+        assertNotNull(reservation);                        // confirm the reservation exists
+        assertEquals(137, reservation.getGuestId());    // confirm the reservation was updated
 
         Reservation doesNotExist = new Reservation();
-        doesNotExist.setId(1024);
-        assertFalse(repository.update(doesNotExist)); // can't update a memory that doesn't exist
+        doesNotExist.setReservationId(1024);
+        assertFalse(repository.update(doesNotExist)); // can't update a reservation that doesn't exist
     }
 
     @Test

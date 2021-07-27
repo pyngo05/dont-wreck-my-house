@@ -1,8 +1,10 @@
 package learn.dontwreckmyhouse.data;
 
 import learn.dontwreckmyhouse.models.Reservation;
+
 import java.io.*;
 import java.math.BigDecimal;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -19,10 +21,11 @@ public class ReservationFileRepository {
         this.directory = directory;
     }
 
-    // Find host's reservations by UUID
+    // Find host's reservations by host ID
     public List<Reservation> findByHostId(UUID hostId) {
         ArrayList<Reservation> result = new ArrayList<>();
-        try (BufferedReader reader = new BufferedReader(new FileReader(directory))) {
+        String filepath = getFilePath(hostId);
+        try (BufferedReader reader = new BufferedReader(new FileReader(filepath))) {
 
             reader.readLine(); // read header
 
@@ -39,9 +42,8 @@ public class ReservationFileRepository {
         return result;
     }
 
-    //TODO MAKE FIND BY RESERVATION ID THEN FINISH UPDATE'S TEST
     // Finds reservations by id
-    public Reservation findById(int reservationId, UUID hostId) throws DataException {
+    public Reservation findByReservationId(int reservationId, UUID hostId) throws DataException {
         List<Reservation> all = findByHostId(hostId);
         for (Reservation reservation : all) {
             if (reservation.getReservationId() == reservationId) {
@@ -96,7 +98,7 @@ public class ReservationFileRepository {
     }
 
     public String serialize(Reservation reservation) {
-        return String.format("%s,%s,%s,%s",
+        return String.format("%s,%s,%s,%s,%s",
                 reservation.getReservationId(),
                 reservation.getStartDate(),
                 reservation.getEndDate(),
@@ -105,13 +107,14 @@ public class ReservationFileRepository {
     }
 
     public Reservation deserialize(String[] fields, UUID HostId) {
-        Reservation result = new Reservation(
-                Integer.parseInt(fields[0]),
-                LocalDate.parse(fields[1]),
-                LocalDate.parse(fields[2]),
-                Integer.parseInt(fields[3]),
-                BigDecimal.valueOf(Long.parseLong(fields[4])));
-                return result;
+        Reservation result = new Reservation();
+        result.setHostId(HostId);
+        result.setReservationId(Integer.parseInt(fields[0]));
+        result.setStartDate(LocalDate.parse(fields[1]));
+        result.setEndDate(LocalDate.parse(fields[2]));
+        result.setGuestId(Integer.parseInt(fields[3]));
+        result.setTotal(BigDecimal.valueOf(Long.parseLong(fields[4])));
+        return result;
     }
 
     public void writeToFile(List<Reservation> reservations, UUID hostId) throws DataException {
