@@ -1,28 +1,26 @@
 package learn.dontwreckmyhouse.data;
 
 import learn.dontwreckmyhouse.models.Reservation;
-import learn.dontwreckmyhouse.models.Guest;
-import learn.dontwreckmyhouse.models.Host;
-
 import java.io.*;
+import java.math.BigDecimal;
 import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 public class ReservationFileRepository {
 
     private static final String HEADER = "id,startDate,endDate,guestId,total";
     private final String directory;
+    private final String delimiter = ",";
 
     public ReservationFileRepository(String directory) {
         this.directory = directory;
     }
 
-    // Finds all reservations
-    public List<Reservation> findAll() {
+    // Find host's reservations by UUID
+    public List<Reservation> findByHostId(UUID hostId) {
         ArrayList<Reservation> result = new ArrayList<>();
         try (BufferedReader reader = new BufferedReader(new FileReader(directory))) {
 
@@ -31,8 +29,8 @@ public class ReservationFileRepository {
             for (String line = reader.readLine(); line != null; line = reader.readLine()) {
 
                 String[] fields = line.split(",", -1);
-                if (fields.length == 4) {
-                    result.add(deserialize(fields));
+                if (fields.length == 5) {
+                    result.add(deserialize(fields, hostId));
                 }
             }
         } catch (IOException ex) {
@@ -41,22 +39,12 @@ public class ReservationFileRepository {
         return result;
     }
 
-    // Find host's reservations by UUID
-    public Reservation findByHostId(UUID hostId) throws DataException {
-        List<Reservation> all = findAll();
+    //TODO MAKE FIND BY RESERVATION ID THEN FINISH UPDATE'S TEST
+    // Finds reservations by id
+    public Reservation findById(int reservationId, UUID hostId) throws DataException {
+        List<Reservation> all = findByHostId(hostId);
         for (Reservation reservation : all) {
-            if (reservation.getHostId() == hostId) {
-                return reservation;
-            }
-        }
-        return null;
-    }
-
-    // Find by reservation id
-    public Reservation findById(int id) throws DataException {
-        List<Reservation> all = findAll();
-        for (Reservation reservation : all) {
-            if (reservation.getId() == id) {
+            if (reservation.getReservationId() == reservationId) {
                 return reservation;
             }
         }
@@ -65,68 +53,82 @@ public class ReservationFileRepository {
 
 
     public Reservation add(Reservation reservation) throws DataException {
-        List<Reservation> all = findAll();
-
-        int nextId = all.stream()
-                .mapToInt(Reservation::getId)
-                .max()
-                .orElse(0) + 1;
-
-        reservation.setId(nextId);
-
+        List<Reservation> all = findByHostId(reservation.getHostId());
+        int nextId = getNextId(all);
+        reservation.setReservationId((nextId));
         all.add(reservation);
-        writeToFile(all);
-
+        writeToFile(all, reservation.getHostId());
         return reservation;
     }
 
     public boolean update(Reservation reservation) throws DataException {
-        List<Reservation> all = findByHostId(reservation.getId());
+        List<Reservation> all = findByHostId(reservation.getHostId());
         for (int i = 0; i < all.size(); i++) {
-            if (all.get(i).getId() == reservation.getId()) {
+            if (all.get(i).getReservationId() == reservation.getReservationId()) {
                 all.set(i, reservation);
-                writeToFile(all, reservation.getId());
+                writeToFile(all, reservation.getHostId());
                 return true;
             }
         }
         return false;
     }
 
-    public void delete() {
-
+    public boolean delete(Reservation reservation) throws DataException {
+        List<Reservation> all = findByHostId(reservation.getHostId());
+        for (int i = 0; i < all.size(); i++) {
+            if (all.get(i).getReservationId() == reservation.getReservationId()) {
+                all.remove(i);      // remove
+                writeToFile(all, reservation.getHostId());
+                return true;
+            }
+        }
+        return false;
     }
 
-    public void serialize(Reservation reservation) {
-        return String.format("%d,%s,%s,%s",
-                reservation.getId(),
+    private int getNextId(List<Reservation> reservations) {
+        int maxId = 0;
+        for (Reservation reservation : reservations) {
+            if (maxId < reservation.getReservationId()) {
+                maxId = reservation.getReservationId();
+            }
+        }
+        return maxId + 1;
+    }
+
+    public String serialize(Reservation reservation) {
+        return String.format("%s,%s,%s,%s",
+                reservation.getReservationId(),
                 reservation.getStartDate(),
                 reservation.getEndDate(),
+                reservation.getGuestId(),
                 reservation.getTotal());
     }
 
-    public void deserialize() {
-
+    public Reservation deserialize(String[] fields, UUID HostId) {
+        Reservation result = new Reservation(
+                Integer.parseInt(fields[0]),
+                LocalDate.parse(fields[1]),
+                LocalDate.parse(fields[2]),
+                Integer.parseInt(fields[3]),
+                BigDecimal.valueOf(Long.parseLong(fields[4])));
+                return result;
     }
 
-    public void writeToFile() {
-        Reservation reservation = new Reservation();
-        reservation.setId(fields[0]);
-        reservation.setDate(date);
-        reservation.setKilograms(Double.parseDouble(fields[3]));
+    public void writeToFile(List<Reservation> reservations, UUID hostId) throws DataException {
+        try (PrintWriter writer = new PrintWriter(getFilePath(hostId))) {
 
-        Forager forager = new Forager();
-        forager.setId(fields[1]);
-        result.setForager(forager);
+            writer.println(HEADER);
 
-        Item item = new Item();
-        item.setId(Integer.parseInt(fields[2]));
-        result.setItem(item);
-        return result;
-    }
+            for (Reservation reservation : reservations) {
+                writer.println(serialize(reservation));
+            }
+        } catch (FileNotFoundException ex) {
+            throw new DataException(ex);
+        }
     }
 
-    private String getFilePath(UUID id) {
-        return Paths.get(directory, id + ".csv").toString();
+    private String getFilePath(UUID hostId) {
+        return Paths.get(directory, hostId + ".csv").toString();
     }
 
 }

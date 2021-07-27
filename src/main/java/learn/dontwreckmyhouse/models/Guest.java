@@ -2,15 +2,15 @@ package learn.dontwreckmyhouse.models;
 
 public class Guest {
 
-    private int id;
+    private int guestId;
     private String firstName;
     private String lastName;
     private String email;
     private String phone;
     private String state;
 
-    public int getId() {
-        return id;
+    public int getGuestId() {
+        return guestId;
     }
 
     public String getFirstName() {
@@ -31,6 +31,10 @@ public class Guest {
 
     public String getState() {
         return state;
+    }
+
+    public void setGuestId(int guestId) {
+        this.guestId = guestId;
     }
 
 }

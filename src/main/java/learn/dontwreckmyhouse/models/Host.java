@@ -6,7 +6,7 @@ import java.util.UUID;
 
 public class Host {
 
-    private UUID id;
+    private UUID HostId;
     private String lastName;
     private String email;
     private String phone;
@@ -17,7 +17,7 @@ public class Host {
     private BigDecimal weekendRate;
 
     public UUID getId() {
-        return id;
+        return HostId;
     }
 
     public String getLastName() {
