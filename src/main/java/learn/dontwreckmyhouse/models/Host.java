@@ -12,11 +12,49 @@ public class Host {
     private String phone;
     private String address;
     private String city;
+    private String state;
     private String postalCode;
     private BigDecimal standardRate;
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
+    }
+
+    public void setPostalCode(String postalCode) {
+        this.postalCode = postalCode;
+    }
+
+    public void setStandardRate(BigDecimal standardRate) {
+        this.standardRate = standardRate;
+    }
+
+    public void setWeekendRate(BigDecimal weekendRate) {
+        this.weekendRate = weekendRate;
+    }
+
     private BigDecimal weekendRate;
 
-    public UUID getId() {
+    public void setHostId(UUID hostId) {
+        HostId = hostId;
+    }
+
+    public UUID getHostId() {
         return HostId;
     }
 
@@ -38,6 +76,14 @@ public class Host {
 
     public String getCity() {
         return city;
+    }
+
+    public String getState() {
+        return state;
+    }
+
+    public void setState(String state) {
+        this.state = state;
     }
 
     public String getPostalCode() {
