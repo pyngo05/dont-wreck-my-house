@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public class ReservationFileRepository {
+public class ReservationFileRepository implements ReservationRepository {
 
     private static final String HEADER = "id,startDate,endDate,guestId,total";
     private final String directory;
@@ -20,6 +20,13 @@ public class ReservationFileRepository {
         this.directory = directory;
     }
 
+
+    @Override
+    public List<Reservation> findByDate(LocalDate date) {
+        return null;
+    }
+
+    @Override
     // Find host's reservations by host ID
     public List<Reservation> findByHostId(UUID hostId) {
         ArrayList<Reservation> result = new ArrayList<>();
@@ -41,6 +48,7 @@ public class ReservationFileRepository {
         return result;
     }
 
+    @Override
     // Finds reservations by id
     public Reservation findByReservationId(int reservationId, UUID hostId) throws DataException {
         List<Reservation> all = findByHostId(hostId);
@@ -52,7 +60,7 @@ public class ReservationFileRepository {
         return null;
     }
 
-
+@Override
     public Reservation add(Reservation reservation) throws DataException {
         List<Reservation> all = findByHostId(reservation.getHostId());
         int nextId = getNextId(all);
@@ -62,6 +70,7 @@ public class ReservationFileRepository {
         return reservation;
     }
 
+    @Override
     public boolean update(Reservation reservation) throws DataException {
         List<Reservation> all = findByHostId(reservation.getHostId());
         for (int i = 0; i < all.size(); i++) {
@@ -74,6 +83,7 @@ public class ReservationFileRepository {
         return false;
     }
 
+    @Override
     public boolean delete(Reservation reservation) throws DataException {
         List<Reservation> all = findByHostId(reservation.getHostId());
         for (int i = 0; i < all.size(); i++) {
@@ -96,7 +106,7 @@ public class ReservationFileRepository {
         return maxId + 1;
     }
 
-    public String serialize(Reservation reservation) {
+    private String serialize(Reservation reservation) {
         return String.format("%s,%s,%s,%s,%s",
                 reservation.getReservationId(),
                 reservation.getStartDate(),
@@ -105,7 +115,7 @@ public class ReservationFileRepository {
                 reservation.getTotal());
     }
 
-    public Reservation deserialize(String[] fields, UUID HostId) {
+    private Reservation deserialize(String[] fields, UUID HostId) {
         Reservation result = new Reservation();
         result.setHostId(HostId);
         result.setReservationId(Integer.parseInt(fields[0]));
@@ -116,7 +126,7 @@ public class ReservationFileRepository {
         return result;
     }
 
-    public void writeToFile(List<Reservation> reservations, UUID hostId) throws DataException {
+    private void writeToFile(List<Reservation> reservations, UUID hostId) throws DataException {
         try (PrintWriter writer = new PrintWriter(getFilePath(hostId))) {
 
             writer.println(HEADER);

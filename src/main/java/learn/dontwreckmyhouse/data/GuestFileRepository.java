@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class GuestFileRepository {
+public class GuestFileRepository implements GuestRepository {
 
     private final String filePath;
     private static final String HEADER = "guest_id,first_name,last_name,email,phone,state";
@@ -16,6 +16,7 @@ public class GuestFileRepository {
         this.filePath = filePath;
     }
 
+    @Override
     public List<Guest> findAll() {
         ArrayList<Guest> result = new ArrayList<>();
         try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
@@ -35,6 +36,7 @@ public class GuestFileRepository {
         return result;
     }
 
+    @Override
     public Guest findByGuestId(int guestId) throws DataException {
             List<Guest> all = findAll();
             for (Guest guest : all) {
@@ -44,6 +46,8 @@ public class GuestFileRepository {
             }
             return null;
         }
+
+    @Override
     public List<Guest> findByEmail(String guestEmail) {
         return findAll().stream()
                 .filter(i -> i.getState().equalsIgnoreCase(guestEmail))
@@ -62,7 +66,7 @@ public class GuestFileRepository {
         return result;
     }
 
-    protected void writeAll(List<Guest> guests) throws DataException {
+    private void writeAll(List<Guest> guests) throws DataException {
         try (PrintWriter writer = new PrintWriter(filePath)) {
 
             writer.println(HEADER);

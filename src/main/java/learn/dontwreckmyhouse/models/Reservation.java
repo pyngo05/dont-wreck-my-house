@@ -13,6 +13,9 @@ public class Reservation {
     private LocalDate endDate;
     private int guestId;
     private BigDecimal total;
+    private Host host;
+    private Guest guest;
+    private LocalDate date;
 
     public void setGuestId(int guestId) {
         this.guestId = guestId;
@@ -65,6 +68,18 @@ public class Reservation {
 
     public void setEndDate(LocalDate endDate) {
         this.endDate = endDate;
+    }
+
+    public Host getHost() {
+        return host;
+    }
+
+    public Guest getGuest() {
+        return guest;
+    }
+
+    public LocalDate getDate() {
+        return date;
     }
 
 }
