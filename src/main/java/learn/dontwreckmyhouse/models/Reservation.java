@@ -2,9 +2,6 @@ package learn.dontwreckmyhouse.models;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 import java.time.*;
 
@@ -59,6 +56,32 @@ public class Reservation {
     }
 
     public BigDecimal getTotal() {
+       return total;
+    }
+
+    public void setStartDate(LocalDate startDate) {
+        this.startDate = startDate;
+    }
+
+    public void setEndDate(LocalDate endDate) {
+        this.endDate = endDate;
+    }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+//FOR DELETE
 //        Host host = new Host();
 //        List<Integer> days = new ArrayList<>();
 //        int i = 0;
@@ -76,15 +99,3 @@ public class Reservation {
 //            //weekend rate
 //            total = host.getWeekendRate().multiply(BigDecimal.valueOf(daysBetween));
 //        }
-       return total;
-    }
-
-    public void setStartDate(LocalDate startDate) {
-        this.startDate = startDate;
-    }
-
-    public void setEndDate(LocalDate endDate) {
-        this.endDate = endDate;
-    }
-
-}

@@ -38,12 +38,18 @@ class ReservationFileRepositoryTest {
     }
 
     @Test
+    void shouldFindByExistingReservationId() throws DataException {
+        Reservation reservation = repository.findByReservationId(2, UUID.fromString("2e72f86c-b8fe-4265-b4f1-304dea8762db"));
+        assertEquals(BigDecimal.valueOf(1300), reservation.getTotal());
+    }
+
+    @Test
     void shouldAddValidReservation() throws DataException {
         Reservation reservation = new Reservation();
         reservation.setHostId(UUID.fromString("2e72f86c-b8fe-4265-b4f1-304dea8762db"));
         reservation.setReservationId(13);
-        reservation.setStartDate(LocalDate.ofEpochDay(2022-01-24));
-        reservation.setEndDate(LocalDate.ofEpochDay(2022-01-28));
+        reservation.setStartDate(LocalDate.ofEpochDay(2022 - 01 - 24));
+        reservation.setEndDate(LocalDate.ofEpochDay(2022 - 01 - 28));
         reservation.setGuestId(15);
         reservation.setTotal(BigDecimal.valueOf(1400));
 
@@ -53,31 +59,32 @@ class ReservationFileRepositoryTest {
     }
 
     @Test
-    void update() throws DataException {
+    void shouldUpdateExisting() throws DataException {
         Reservation reservation = repository.findByReservationId(2, UUID.fromString("2e72f86c-b8fe-4265-b4f1-304dea8762db"));
         reservation.setGuestId(137);
         assertTrue(repository.update(reservation));
         assertNotNull(reservation);                        // confirm the reservation exists
         assertEquals(137, reservation.getGuestId());    // confirm the reservation was updated
+    }
 
+    @Test
+    void shouldNotUpdateMissing() throws DataException {
         Reservation doesNotExist = new Reservation();
         doesNotExist.setReservationId(1024);
         assertFalse(repository.update(doesNotExist)); // can't update a reservation that doesn't exist
     }
 
     @Test
-    void delete() {
-    }
+    void shouldDeleteByExistingId() throws DataException {
+        List<Reservation> allReservations = repository.findByHostId(UUID.fromString("2e72f86c-b8fe-4265-b4f1-304dea8762db"));
+        int countBefore = allReservations.size();
 
-    @Test
-    void serialize() {
-    }
+        Reservation reservation = repository.findByReservationId(2, UUID.fromString("2e72f86c-b8fe-4265-b4f1-304dea8762db"));
+        boolean deleted = repository.delete(reservation);
+        assertTrue(deleted);
 
-    @Test
-    void deserialize() {
-    }
-
-    @Test
-    void writeToFile() {
+        allReservations = repository.findByHostId(UUID.fromString("2e72f86c-b8fe-4265-b4f1-304dea8762db"));
+        int countAfter = allReservations.size();
+        assertEquals(countBefore - 1, countAfter);
     }
 }
