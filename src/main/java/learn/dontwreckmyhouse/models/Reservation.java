@@ -82,6 +82,14 @@ public class Reservation {
         return date;
     }
 
+    public void setGuest(Guest guest) {
+        this.guest = guest;
+    }
+
+    public void setHost(Host host) {
+        this.host = host;
+    }
+
 }
 
 

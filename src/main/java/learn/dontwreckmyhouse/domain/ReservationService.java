@@ -9,10 +9,7 @@ import learn.dontwreckmyhouse.models.Guest;
 import learn.dontwreckmyhouse.models.Host;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class ReservationService {
@@ -27,17 +24,18 @@ public class ReservationService {
         this.hostRepository = hostRepository;
     }
 
+    //TODO should this be date?
     public List<Reservation> findByDate(LocalDate date) {
 
-        Map<String, Guest> guestMap = guestRepository.findAll().stream()
-                .collect(Collectors.toMap(i -> i.getguestId(), i -> i));
-        Map<Integer, Host> hostMap = hostRepository.findAll().stream()
+        Map<Integer, Guest> guestMap = guestRepository.findAll().stream()
+                .collect(Collectors.toMap(i -> i.getGuestId(), i -> i));
+        Map<UUID, Host> hostMap = hostRepository.findAll().stream()
                 .collect(Collectors.toMap(i -> i.getHostId(), i -> i));
 
         List<Reservation> result = reservationRepository.findByDate(date);
         for (Reservation reservation : result) {
-            reservation.setGuest(guestMap.get(reservation.getguest().getId()));
-            reservation.setHost(hostMap.get(reservation.getItem().getId()));
+            reservation.setGuest(guestMap.get(reservation.getGuest().getGuestId()));
+            reservation.setHost(hostMap.get(reservation.getHost().getHostId()));
         }
 
         return result;
@@ -54,37 +52,35 @@ public class ReservationService {
         return result;
     }
 
-    public int generate(LocalDate start, LocalDate end, int count) throws DataException {
+    public Result<Reservation> update(Reservation reservation) throws DataException {
+        Result<Reservation> result = validate(reservation);
 
-        if (start == null || end == null || start.isAfter(end) || count <= 0) {
-            return 0;
+        if (reservation.getReservationId() <= 0) {
+            result.addErrorMessage("Reservation id is required.");
         }
 
-        count = Math.min(count, 500);
-
-        ArrayList<LocalDate> dates = new ArrayList<>();
-        while (!start.isAfter(end)) {
-            dates.add(start);
-            start = start.plusDays(1);
+        if (result.isSuccess()) {
+            if (reservationRepository.update(reservation)) {
+                result.setPayload(reservationRepository.update(reservation));
+            } else {
+                String message = String.format("Reservation id %s was not found.", reservation.getReservationId()));
+                result.addErrorMessage(message);
+            }
         }
-
-        List<Host> hosts = hostRepository.findAll();
-        List<Guest> guests = guestRepository.findAll();
-        Random random = new Random();
-
-        for (int i = 0; i < count; i++) {
-            Reservation reservation = new Reservation();
-            reservation.setDate(dates.get(random.nextInt(dates.size())));
-            reservation.setForager(guests.get(random.nextInt(guests.size())));
-            reservation.setItem(hosts.get(random.nextInt(hosts.size())));
-            reservation.setKilograms(random.nextDouble() * 5.0 + 0.1);
-            reservationRepository.add(reservation);
-        }
-
-        return count;
+        return result;
     }
 
-    private Result<Reservation> validate(Reservation reservation) {
+    // TODO fix this
+//    public Result<Reservation> deleteById(int reservationId) throws DataException {
+//        Result<Reservation> result = new MemoryResult();
+//        if (!repository.deleteById(memoryId)) {
+//            String message = String.format("Memory id %s was not found.", memoryId);
+//            result.addErrorMessage(message);
+//        }
+//        return result;
+//    }
+
+    private Result<Reservation> validate(Reservation reservation) throws DataException {
 
         Result<Reservation> result = validateNulls(reservation);
         if (!result.isSuccess()) {
@@ -113,15 +109,15 @@ public class ReservationService {
         }
 
         if (reservation.getDate() == null) {
-            result.addErrorMessage("Forage date is required.");
+            result.addErrorMessage("Reservation date is required.");
         }
 
-        if (reservation.getForager() == null) {
-            result.addErrorMessage("Forager is required.");
+        if (reservation.getGuest() == null) {
+            result.addErrorMessage("Guest is required.");
         }
 
-        if (reservation.getItem() == null) {
-            result.addErrorMessage("Item is required.");
+        if (reservation.getHost() == null) {
+            result.addErrorMessage("Host is required.");
         }
         return result;
     }
@@ -134,8 +130,9 @@ public class ReservationService {
             result.addErrorMessage("Reservation date cannot be in the past.");
         }
 
-        if (reservation.getKilograms() <= 0 || reservation.getKilograms() > 250.0) {
-            result.addErrorMessage("Kilograms must be a positive number less than 250.0");
+        if (reservation.getGuest() == null || reservation.getHost() == null
+                || reservation.getStartDate() == null || reservation.getEndDate()== null ) {
+            result.addErrorMessage("Invalid reservation. Please re-enter reservation details.");
         }
 
         List<Reservation> all = reservationRepository.findByDate(reservation.getDate());
