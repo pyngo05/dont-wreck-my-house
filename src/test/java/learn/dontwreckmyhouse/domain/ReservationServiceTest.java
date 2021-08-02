@@ -17,4 +17,20 @@ class ReservationServiceTest {
     @Test
     void update() {
     }
+
+    @Test
+    void findByHostId() {
+    }
+
+    @Test
+    void testAdd() {
+    }
+
+    @Test
+    void testUpdate() {
+    }
+
+    @Test
+    void deleteById() {
+    }
 }

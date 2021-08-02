@@ -24,15 +24,14 @@ public class ReservationService {
         this.hostRepository = hostRepository;
     }
 
-    //TODO should this be date?
-    public List<Reservation> findByDate(LocalDate date) {
+    public List<Reservation> findByHostId(UUID hostId) {
 
         Map<Integer, Guest> guestMap = guestRepository.findAll().stream()
-                .collect(Collectors.toMap(i -> i.getGuestId(), i -> i));
+                .collect(Collectors.toMap(Guest::getGuestId, i -> i));
         Map<UUID, Host> hostMap = hostRepository.findAll().stream()
-                .collect(Collectors.toMap(i -> i.getHostId(), i -> i));
+                .collect(Collectors.toMap(Host::getHostId, i -> i));
 
-        List<Reservation> result = reservationRepository.findByDate(date);
+        List<Reservation> result = reservationRepository.findByHostId(hostId);
         for (Reservation reservation : result) {
             reservation.setGuest(guestMap.get(reservation.getGuest().getGuestId()));
             reservation.setHost(hostMap.get(reservation.getHost().getHostId()));
@@ -53,32 +52,48 @@ public class ReservationService {
     }
 
     public Result<Reservation> update(Reservation reservation) throws DataException {
-        Result<Reservation> result = validate(reservation);
+        Result<Reservation> result = new Result<Reservation>();
 
         if (reservation.getReservationId() <= 0) {
             result.addErrorMessage("Reservation id is required.");
+            return result;
         }
 
-        if (result.isSuccess()) {
-            if (reservationRepository.update(reservation)) {
-                result.setPayload(reservationRepository.update(reservation));
-            } else {
-                String message = String.format("Reservation id %s was not found.", reservation.getReservationId()));
-                result.addErrorMessage(message);
-            }
+        result = validate(reservation);
+        if (!result.isSuccess()) {
+            return result;
         }
+
+        boolean updated = reservationRepository.update(reservation);
+        if (updated) {
+            result.setPayload(reservation);
+        } else {
+            result.addErrorMessage("Reservation failed to update.");
+        }
+
         return result;
     }
 
-    // TODO fix this
-//    public Result<Reservation> deleteById(int reservationId) throws DataException {
-//        Result<Reservation> result = new MemoryResult();
-//        if (!repository.deleteById(memoryId)) {
-//            String message = String.format("Memory id %s was not found.", memoryId);
-//            result.addErrorMessage(message);
-//        }
-//        return result;
-//    }
+    public Result<Reservation> deleteById(int reservationId, UUID hostId) throws DataException {
+        Result<Reservation> result = new Result<Reservation>();
+
+        // get reservation to make sure it exists
+        Reservation reservation = reservationRepository.findByReservationId(reservationId, hostId);
+        if (reservation == null) {
+            result.addErrorMessage("Reservation not found for that host.");
+            return result;
+        }
+
+        // delete it
+        boolean deleted = reservationRepository.delete(reservation);
+        if (deleted) {
+            result.setPayload(reservation);
+        } else {
+            result.addErrorMessage("Reservation failed to delete.");
+        }
+
+        return result;
+    }
 
     private Result<Reservation> validate(Reservation reservation) throws DataException {
 
@@ -108,8 +123,12 @@ public class ReservationService {
             return result;
         }
 
-        if (reservation.getDate() == null) {
-            result.addErrorMessage("Reservation date is required.");
+        if (reservation.getStartDate() == null) {
+            result.addErrorMessage("Reservation start date is required.");
+        }
+
+        if (reservation.getEndDate() == null) {
+            result.addErrorMessage("Reservation end date is required.");
         }
 
         if (reservation.getGuest() == null) {
@@ -125,23 +144,30 @@ public class ReservationService {
     private Result<Reservation> validateFields(Reservation reservation) {
         Result<Reservation> result = new Result<>();
 
-        // No past dates.
-        if (reservation.getDate().isBefore(LocalDate.now())) {
+        //The start date must be in the future and cannot cancel a reservation that's in the past.
+        if (reservation.getStartDate().isBefore(LocalDate.now())) {
             result.addErrorMessage("Reservation date cannot be in the past.");
+            return result;
         }
 
+        //The start date must come before the end date.
+        if (reservation.getStartDate().isAfter(reservation.getEndDate())) {
+            result.addErrorMessage("Reservation start date cannot be after end date.");
+            return result;
+        }
+
+
+        //Guest, host, and start and end dates are required.
         if (reservation.getGuest() == null || reservation.getHost() == null
                 || reservation.getStartDate() == null || reservation.getEndDate()== null ) {
             result.addErrorMessage("Invalid reservation. Please re-enter reservation details.");
+            return result;
         }
 
-        List<Reservation> all = reservationRepository.findByDate(reservation.getDate());
-        for (Reservation existingReservation : all) {
-            if (existingReservation.getHost().getHostId() == reservation.getHost().getHostId()
-                    && existingReservation.getGuest().getGuestId() == reservation.getGuest().getGuestId()) {
-                result.addErrorMessage("This rental property has already been reserved by a guest on that date range.");
-
-            }
+        //The reservation must not overlap existing reservation dates.
+        List<Reservation> reservationsOnThoseDates = reservationRepository.findByDateRange(reservation.getStartDate(), reservation.getEndDate(), reservation.getHostId());
+        if (reservationsOnThoseDates.size() > 0) {
+            result.addErrorMessage("Reservations exist between those dates.");
         }
 
         return result;

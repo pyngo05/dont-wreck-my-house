@@ -20,6 +20,10 @@ class ReservationFileRepositoryTest {
 
     static final String SEED_FILE_PATH = "./data/reservations/reservation-test-data/reservations-seed.csv";
     static final String TEST_FILE_PATH = "./data/reservations/reservation-test-data/2e72f86c-b8fe-4265-b4f1-304dea8762db.csv";
+    final LocalDate startDate = LocalDate.of(2022, 1, 5);
+    final LocalDate endDate = LocalDate.of(2022, 1, 10);
+    final LocalDate startDate2 = LocalDate.of(2023, 1, 5);
+    final LocalDate endDate2 = LocalDate.of(2023, 1, 10);
 
     ReservationFileRepository repository = new ReservationFileRepository("./data/reservations/reservation-test-data");
 
@@ -86,5 +90,17 @@ class ReservationFileRepositoryTest {
         allReservations = repository.findByHostId(UUID.fromString("2e72f86c-b8fe-4265-b4f1-304dea8762db"));
         int countAfter = allReservations.size();
         assertEquals(countBefore - 1, countAfter);
+    }
+
+    @Test
+    void shouldNotReserveByOverlappingDateRange() {
+        List<Reservation> reservations = repository.findByDateRange(startDate, endDate, UUID.fromString("2e72f86c-b8fe-4265-b4f1-304dea8762db"));
+        assertEquals(1, reservations.size());
+    }
+
+    @Test
+    void shouldReserveByNonOverlappingDateRange() {
+        List<Reservation> reservations = repository.findByDateRange(startDate2, endDate2, UUID.fromString("2e72f86c-b8fe-4265-b4f1-304dea8762db"));
+        assertEquals(0, reservations.size());
     }
 }

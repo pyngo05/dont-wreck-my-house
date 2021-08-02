@@ -78,10 +78,6 @@ public class Reservation {
         return guest;
     }
 
-    public LocalDate getDate() {
-        return date;
-    }
-
     public void setGuest(Guest guest) {
         this.guest = guest;
     }
@@ -91,34 +87,3 @@ public class Reservation {
     }
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-//FOR DELETE
-//        Host host = new Host();
-//        List<Integer> days = new ArrayList<>();
-//        int i = 0;
-//        int j = 1;
-//        while (i < daysBetween) {
-//            days.set(i, startDate.getDayOfWeek().getValue());
-//            i++;
-//            days.set(j, )
-//        }
-//        daysBetween = ChronoUnit.DAYS.between(startDate, endDate);
-//        //weekday rate
-//        if (dayOfWeek != 6 && dayOfWeek != 7) {
-//            total = host.getStandardRate().multiply(BigDecimal.valueOf(daysBetween))  ;
-//        } else {
-//            //weekend rate
-//            total = host.getWeekendRate().multiply(BigDecimal.valueOf(daysBetween));
-//        }

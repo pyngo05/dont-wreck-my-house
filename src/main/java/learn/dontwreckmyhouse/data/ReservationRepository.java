@@ -8,7 +8,7 @@ import java.util.UUID;
 
 public interface ReservationRepository {
 
-    List<Reservation> findByDate(LocalDate date);
+    List<Reservation> findByDateRange(LocalDate startDate, LocalDate endDate, UUID hostId);
 
     List<Reservation> findByHostId(UUID hostId);
 

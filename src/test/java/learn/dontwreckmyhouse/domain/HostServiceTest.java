@@ -9,4 +9,8 @@ class HostServiceTest {
     @Test
     void findByHostId() {
     }
+
+    @Test
+    void testFindByHostId() {
+    }
 }

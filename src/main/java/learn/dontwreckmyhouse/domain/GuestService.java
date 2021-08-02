@@ -54,17 +54,4 @@ public class GuestService {
         return result;
     }
 
-//    private Result<Guest> validateFields(Guest guest, Result<Guest> result) {
-//        // No duplicates.
-//        List<Guest> all = repository.findAll();
-//        for (Guest guests : all) {
-//            if (guests.getFirstName().equals(guest.getFirstName())
-//                    && guests.getLastName().equals(guest.getLastName())
-//                    && guests.getEmail().equals(guest.getEmail())
-//                    && guests.getPhone().equals(guest.getPhone())
-//                    && guests.getState().equals(guest.getState())) {
-//                result.addErrorMessage("This guest already exists.");
-//            }
-//        } return result;
-//    }
 }

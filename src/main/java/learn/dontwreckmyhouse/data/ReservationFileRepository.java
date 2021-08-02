@@ -1,12 +1,14 @@
 package learn.dontwreckmyhouse.data;
 
 import learn.dontwreckmyhouse.models.Reservation;
+import org.springframework.cglib.core.Local;
 
 import java.io.*;
 import java.math.BigDecimal;
 import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -20,11 +22,23 @@ public class ReservationFileRepository implements ReservationRepository {
         this.directory = directory;
     }
 
-
     @Override
-    public List<Reservation> findByDate(LocalDate date) {
-        return null;
+    public List<Reservation> findByDateRange(LocalDate startDate, LocalDate endDate, UUID hostId) {
+        List<Reservation> overlappingReservations = new ArrayList<>();
+
+        List<Reservation> all = findByHostId(hostId);
+        for (Reservation reservation : all) {
+            if (reservation.getStartDate().isAfter(endDate) || reservation.getEndDate().isBefore(startDate)) {
+                // reservation does not overlap start and end date, so skip it
+                continue;
+            } else {
+                overlappingReservations.add(reservation);
+            }
+        }
+
+        return overlappingReservations;
     }
+
 
     @Override
     // Find host's reservations by host ID
@@ -143,4 +157,14 @@ public class ReservationFileRepository implements ReservationRepository {
         return Paths.get(directory, hostId + ".csv").toString();
     }
 
+    // Returns true if date is between start and end date, inclusively.
+    private boolean dateIsBetween(LocalDate date, LocalDate start, LocalDate end) {
+        if (date.equals(start) || date.equals(end)) {
+            return true;
+        }
+        if (date.isBefore(end) && date.isAfter(start)) {
+            return true;
+        }
+        return false;
+    }
 }
