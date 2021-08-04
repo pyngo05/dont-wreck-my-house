@@ -1,5 +1,6 @@
 package learn.dontwreckmyhouse.data;
 
+import learn.dontwreckmyhouse.domain.Result;
 import learn.dontwreckmyhouse.models.Reservation;
 import org.springframework.cglib.core.Local;
 
@@ -22,28 +23,28 @@ public class ReservationFileRepository implements ReservationRepository {
         this.directory = directory;
     }
 
-    @Override
-    public List<Reservation> findByDateRange(LocalDate startDate, LocalDate endDate, UUID hostId) {
-        List<Reservation> overlappingReservations = new ArrayList<>();
-
-        List<Reservation> all = findByHostId(hostId);
-        for (Reservation reservation : all) {
-            if (reservation.getStartDate().isAfter(endDate) || reservation.getEndDate().isBefore(startDate)) {
-                // reservation does not overlap start and end date, so skip it
-                continue;
-            } else {
-                overlappingReservations.add(reservation);
-            }
-        }
-
-        return overlappingReservations;
-    }
+//    @Override
+//    public List<Reservation> findByDateRange(LocalDate startDate, LocalDate endDate, UUID hostId) {
+//        List<Reservation> overlappingReservations = new ArrayList<>();
+//
+//        List<Reservation> all = findByHostId(hostId);
+//        for (Reservation reservation : all) {
+//            if (reservation.getStartDate().isAfter(endDate) || reservation.getEndDate().isBefore(startDate)) {
+//                // reservation does not overlap start and end date, so skip it
+//                continue;
+//            } else {
+//                overlappingReservations.add(reservation);
+//            }
+//        }
+//
+//        return overlappingReservations;
+//    }
 
 
     @Override
     // Find host's reservations by host ID
-    public List<Reservation> findByHostId(UUID hostId) {
-        ArrayList<Reservation> result = new ArrayList<>();
+    public Result<List<Reservation>> findByHostId(UUID hostId) {
+        ArrayList<Reservation> reservations = new ArrayList<>();
         String filepath = getFilePath(hostId);
         try (BufferedReader reader = new BufferedReader(new FileReader(filepath))) {
 
@@ -53,72 +54,73 @@ public class ReservationFileRepository implements ReservationRepository {
 
                 String[] fields = line.split(",", -1);
                 if (fields.length == 5) {
-                    result.add(deserialize(fields, hostId));
+                    reservations.add(deserialize(fields, hostId));
                 }
             }
         } catch (IOException ex) {
-            // don't throw on read
+            return new Result<>("Failed to read reservations from file.");
         }
-        return result;
+
+        return new Result<>(reservations);
     }
 
-    @Override
-    // Finds reservations by id
-    public Reservation findByReservationId(int reservationId, UUID hostId) throws DataException {
-        List<Reservation> all = findByHostId(hostId);
-        for (Reservation reservation : all) {
-            if (reservation.getReservationId() == reservationId) {
-                return reservation;
-            }
-        }
-        return null;
-    }
+//    @Override
+//    // Finds reservations by id
+//    public Reservation findByReservationId(int reservationId, UUID hostId) throws DataException {
+//        List<Reservation> all = findByHostId(hostId);
+//        for (Reservation reservation : all) {
+//            if (reservation.getReservationId() == reservationId) {
+//                return reservation;
+//            }
+//        }
+//        return null;
+//    }
+//
+//    @Override
+//    public Reservation add(Reservation reservation) throws DataException {
+//        List<Reservation> all = findByHostId(reservation.getHostId());
+//        int nextId = getNextId(all);
+//        reservation.setReservationId((nextId));
+//        all.add(reservation);
+//        writeToFile(all, reservation.getHostId());
+//        return reservation;
+//    }
+//
+//    @Override
+//    public boolean update(Reservation reservation) throws DataException {
+//        List<Reservation> all = findByHostId(reservation.getHostId());
+//        for (int i = 0; i < all.size(); i++) {
+//            if (all.get(i).getReservationId() == reservation.getReservationId()) {
+//                all.set(i, reservation);
+//                writeToFile(all, reservation.getHostId());
+//                return true;
+//            }
+//        }
+//        return false;
+//    }
+//
+//    @Override
+//    public boolean delete(Reservation reservation) throws DataException {
+//        List<Reservation> all = findByHostId(reservation.getHostId());
+//        for (int i = 0; i < all.size(); i++) {
+//            if (all.get(i).getReservationId() == reservation.getReservationId()) {
+//                all.remove(i);      // remove
+//                writeToFile(all, reservation.getHostId());
+//                return true;
+//            }
+//        }
+//        return false;
+//    }
 
-@Override
-    public Reservation add(Reservation reservation) throws DataException {
-        List<Reservation> all = findByHostId(reservation.getHostId());
-        int nextId = getNextId(all);
-        reservation.setReservationId((nextId));
-        all.add(reservation);
-        writeToFile(all, reservation.getHostId());
-        return reservation;
-    }
-
-    @Override
-    public boolean update(Reservation reservation) throws DataException {
-        List<Reservation> all = findByHostId(reservation.getHostId());
-        for (int i = 0; i < all.size(); i++) {
-            if (all.get(i).getReservationId() == reservation.getReservationId()) {
-                all.set(i, reservation);
-                writeToFile(all, reservation.getHostId());
-                return true;
-            }
-        }
-        return false;
-    }
-
-    @Override
-    public boolean delete(Reservation reservation) throws DataException {
-        List<Reservation> all = findByHostId(reservation.getHostId());
-        for (int i = 0; i < all.size(); i++) {
-            if (all.get(i).getReservationId() == reservation.getReservationId()) {
-                all.remove(i);      // remove
-                writeToFile(all, reservation.getHostId());
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private int getNextId(List<Reservation> reservations) {
-        int maxId = 0;
-        for (Reservation reservation : reservations) {
-            if (maxId < reservation.getReservationId()) {
-                maxId = reservation.getReservationId();
-            }
-        }
-        return maxId + 1;
-    }
+//    private int getNextId(List<Reservation> reservations) {
+//        int maxId = 0;
+//        for (Reservation reservation : reservations) {
+//            if (maxId < reservation.getReservationId()) {
+//                maxId = reservation.getReservationId();
+//            }
+//        }
+//        return maxId + 1;
+//    }
 
     private String serialize(Reservation reservation) {
         return String.format("%s,%s,%s,%s,%s",
@@ -157,14 +159,14 @@ public class ReservationFileRepository implements ReservationRepository {
         return Paths.get(directory, hostId + ".csv").toString();
     }
 
-    // Returns true if date is between start and end date, inclusively.
-    private boolean dateIsBetween(LocalDate date, LocalDate start, LocalDate end) {
-        if (date.equals(start) || date.equals(end)) {
-            return true;
-        }
-        if (date.isBefore(end) && date.isAfter(start)) {
-            return true;
-        }
-        return false;
-    }
+//    // Returns true if date is between start and end date, inclusively.
+//    private boolean dateIsBetween(LocalDate date, LocalDate start, LocalDate end) {
+//        if (date.equals(start) || date.equals(end)) {
+//            return true;
+//        }
+//        if (date.isBefore(end) && date.isAfter(start)) {
+//            return true;
+//        }
+//        return false;
+//    }
 }

@@ -9,9 +9,7 @@ public class Guest {
     private String phone;
     private String state;
 
-    public int getGuestId() {
-        return guestId;
-    }
+    public int getGuestId() {return guestId; }
 
     public String getFirstName() {
         return firstName;

@@ -1,123 +1,117 @@
-//package learn.foraging.ui;
-//
-//import learn.foraging.data.DataException;
-//import learn.foraging.domain.ForageService;
-//import learn.foraging.domain.ForagerService;
-//import learn.foraging.domain.ItemService;
-//import learn.foraging.domain.Result;
-//import learn.foraging.models.Category;
-//import learn.foraging.models.Forage;
-//import learn.foraging.models.Forager;
-//import learn.foraging.models.Item;
-//
-//import java.math.BigDecimal;
-//import java.time.LocalDate;
-//import java.util.List;
-//import java.util.Map;
-//import java.util.stream.Collectors;
-//
-//public class Controller {
-//
-//    private final ForagerService foragerService;
-//    private final ForageService forageService;
-//    private final ItemService itemService;
-//    private final View view;
-//
-//    public Controller(ForagerService foragerService, ForageService forageService, ItemService itemService, View view) {
-//        this.foragerService = foragerService;
-//        this.forageService = forageService;
-//        this.itemService = itemService;
-//        this.view = view;
-//    }
-//
-//    public void run() {
-//        view.displayHeader("Welcome to Sustainable Foraging");
-//        try {
-//            runAppLoop();
-//        } catch (DataException ex) {
-//            view.displayException(ex);
-//        }
-//        view.displayHeader("Goodbye.");
-//    }
-//
-//    private void runAppLoop() throws DataException {
-//        MainMenuOption option;
-//        do {
-//            option = view.selectMainMenuOption();
-//            switch (option) {
-//                case VIEW_FORAGES_BY_DATE:
-//                    viewByDate();
+package learn.dontwreckmyhouse.ui;
+
+import learn.dontwreckmyhouse.data.DataException;
+import learn.dontwreckmyhouse.domain.ReservationService;
+import learn.dontwreckmyhouse.domain.Result;
+import learn.dontwreckmyhouse.models.Guest;
+import learn.dontwreckmyhouse.models.Host;
+import learn.dontwreckmyhouse.models.Reservation;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.UUID;
+
+public class Controller {
+
+    private final ReservationService reservationService;
+    private final View view;
+
+    public Controller(ReservationService reservationService, View view) {
+        this.reservationService = reservationService;
+        this.view = view;
+    }
+
+    public void run() {
+        view.displayHeader("Welcome to Don't Wreck My House!");
+        try {
+            runAppLoop();
+        } catch (DataException ex) {
+            view.displayException(ex);
+        }
+        view.displayHeader("Goodbye.");
+    }
+
+    private void runAppLoop() throws DataException {
+        MainMenuOption option;
+        do {
+            option = view.selectMainMenuOption();
+            switch (option) {
+//                case VIEW_RESERVATIONS:
+//                    viewByHost();
 //                    break;
-//                case VIEW_ITEMS:
-//                    viewItems();
+//                case ADD_RESERVATION:
+//                    //addReservation();
 //                    break;
-//                case VIEW_FORAGERS:
-//                    viewForagers();
+                case EDIT_RESERVATION:
+                    editReservation();
+                    break;
+//                case CANCEL_RESERVATION:
+//                    //cancelReservation();
 //                    break;
-//                case ADD_FORAGE:
-//                    addForage();
-//                    break;
-//                case ADD_FORAGER:
-//                    addForager();
-//                    break;
-//                case ADD_ITEM:
-//                    addItem();
-//                    break;
-//                case REPORT_KG_PER_ITEM:
-//                    displayItemWeightsByDate();
-//                    break;
-//                case REPORT_CATEGORY_VALUE:
-//                    displayCategoryValuesByDate();
-//                    break;
-//                case GENERATE:
-//                    generate();
-//                    break;
-//            }
-//        } while (option != MainMenuOption.EXIT);
-//    }
-//
-//    // reports on total weight foraged for all items on a particular date
-//    public void displayItemWeightsByDate() {
-//
-//        // get date from user
-//        LocalDate date = view.getForageDate();
-//
-//        // get forages on that date
-//        List<Forage> forages = forageService.findByDate(date);
-//
-//        // group forages by item, summing the weight of each item
-//        // (should this logic be in the service layer?)
-//        Map<Item, Double> itemWeights = forages.stream()
-//                .collect(Collectors.groupingBy(
-//                        Forage::getItem, // key
-//                        Collectors.summingDouble(Forage::getKilograms) // aggregated value
-//                ));
-//
-//        // display items with their total weight
-//        view.displayItemWeights(itemWeights);
-//
-//    }
-//
-//    // reports on total value foraged for all categories on a particular date
-//    public void displayCategoryValuesByDate() {
-//
-//        // get date from user
-//        LocalDate date = view.getForageDate();
-//
-//        // get forages on that date
-//        List<Forage> forages = forageService.findByDate(date);
-//
-//        // group forages by category, summing the value of each category
-//        // (should this logic be in the service layer?)
-//        Map<Category, Double> categoryValues = forages.stream()
-//                .collect(Collectors.groupingBy(
-//                        forage -> forage.getItem().getCategory(), // key
-//                        Collectors.summingDouble(forage -> new BigDecimal(forage.getKilograms()).multiply(forage.getItem().getDollarPerKilogram()).doubleValue()) // aggregated value
-//                ));
-//
-//        // display items with their total weight
-//        view.displayCategoryValues(categoryValues);
-//
+            }
+        } while (option != MainMenuOption.EXIT);
+    }
+
+    private void editReservation() {
+
+        // get host id from user
+        String hostId = view.getHostId();
+
+        // with that host id from the user, get reservations from service layer
+        Result<List<Reservation>> result = reservationService.findByHostId(UUID.fromString(hostId));
+        if (!result.isSuccess()) {
+            view.displayErrors(result.getErrorMessages());
+            return;
+        }
+
+        // show reservations to user
+        List<Reservation> reservations = result.getPayload();
+        view.displayReservations(reservations);
+
+        // ask user which reservation (id) they want to edit for that host
+        int reservationId = view.getReservationId();
+
+        // find chosen reservation
+        Reservation reservation = null;
+        for (Reservation res : reservations) {
+            if (res.getReservationId() == reservationId) {
+                reservation = res;
+                break;
+            }
+        }
+        if (reservation == null) {
+            view.displayError("No reservation with that ID.");
+            return;
+        }
+
+        // ask user for new start and end date for that reservation
+        LocalDate newStartDate = view.getNewStartDate();
+        LocalDate newEndDate = view.getNewEndDate();
+
+        // recalculate total (probably ask the service to do that? can implement dummy method at first to save time finishing this part)
+        // at this point there is: reservation object, 2 new dates (start and end)
+        reservation.setStartDate(newStartDate);
+        reservation.setEndDate(newEndDate);
+        BigDecimal newTotal = reservationService.calculateReservationTotal(reservation);
+//        or
+        BigDecimal newTotal = reservationService.calculateReservationTotal(reservation, newStartDate, newEndDate);
+
+        // show the user the proposed changes
+
+        // ask the user if they want to confirm the edit
+
+        // depending on choice, do the edit or do nothing
+
+        // print out result/success/etc
+    }
+
+//    private void viewByHost() {
+//        view.displayHeader(MainMenuOption.VIEW_RESERVATIONS.getMessage());
+//        UUID hostId = view.getHostReservations();
+//        Result<List<Reservation>> reservations = reservationService.findByHostId(hostId);
+//        view.displayHeader("Reservations");
+//        view.displayReservations(reservations);
+//        view.enterToContinue();
 //    }
 //
 //    // top level menu
@@ -137,75 +131,32 @@
 //        view.enterToContinue();
 //    }
 //
-//    private void viewForagers() {
-//        view.displayHeader(MainMenuOption.VIEW_FORAGERS.getMessage());
-//        String state = view.getForagerState();
-//        List<Forager> foragers = foragerService.findByState(state);
-//        view.displayHeader("Foragers");
-//        view.displayForagers(foragers);
-//        view.enterToContinue();
-//    }
 //
-//    private void addForage() throws DataException {
-//        view.displayHeader(MainMenuOption.ADD_FORAGE.getMessage());
-//        Forager forager = getForager();
-//        if (forager == null) {
+//    private void addReservation() throws DataException {
+//        view.displayHeader(MainMenuOption.ADD_RESERVATION.getMessage());
+//        Guest guest = getGuest();
+//        if (guest == null) {
 //            return;
 //        }
-//        Item item = getItem();
+//        Host item = getHost();
 //        if (item == null) {
 //            return;
 //        }
-//        Forage forage = view.makeForage(forager, item);
-//        Result<Forage> result = forageService.add(forage);
+//        Reservation reservation = view.makeReservation(reservation, host);
+//        Result<Reservation> result = reservationService.add(reservation);
 //        if (!result.isSuccess()) {
 //            view.displayStatus(false, result.getErrorMessages());
 //        } else {
-//            String successMessage = String.format("Forage %s created.", result.getPayload().getId());
+//            String successMessage = String.format("Reservation %s created.", result.getPayload().getReservationId());
 //            view.displayStatus(true, successMessage);
 //        }
 //    }
-//
-//    private void addItem() throws DataException {
-//        Item item = view.makeItem();
-//        Result<Item> result = itemService.add(item);
-//        if (!result.isSuccess()) {
-//            view.displayStatus(false, result.getErrorMessages());
-//        } else {
-//            String successMessage = String.format("Item %s created.", result.getPayload().getId());
-//            view.displayStatus(true, successMessage);
-//        }
-//    }
-//
-//    private void addForager() throws DataException {
-//        Forager forager = view.makeForager();
-//        Result<Forager> result = foragerService.add(forager);
-//        if (!result.isSuccess()) {
-//            view.displayStatus(false, result.getErrorMessages());
-//        } else {
-//            String successMessage = String.format("Forager %s created.", result.getPayload().getId());
-//            view.displayStatus(true, successMessage);
-//        }
-//    }
-//
-//    private void generate() throws DataException {
-//        GenerateRequest request = view.getGenerateRequest();
-//        if (request != null) {
-//            int count = forageService.generate(request.getStart(), request.getEnd(), request.getCount());
-//            view.displayStatus(true, String.format("%s forages generated.", count));
-//        }
-//    }
-//
+
 //    // support methods
-//    private Forager getForager() {
+//    private Guest getGuest() {
 //        String lastNamePrefix = view.getForagerNamePrefix();
 //        List<Forager> foragers = foragerService.findByLastName(lastNamePrefix);
 //        return view.chooseForager(foragers);
 //    }
-//
-//    private Item getItem() {
-//        Category category = view.getItemCategory();
-//        List<Item> items = itemService.findByCategory(category);
-//        return view.chooseItem(items);
-//    }
-//}
+
+}

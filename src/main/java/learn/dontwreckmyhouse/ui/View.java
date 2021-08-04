@@ -1,40 +1,40 @@
-//package learn.dontwreckmyhouse.ui;
-//
-//import learn.foraging.models.Category;
-//import learn.foraging.models.Forage;
-//import learn.foraging.models.Forager;
-//import learn.foraging.models.Item;
-//
-//import java.math.BigDecimal;
-//import java.time.LocalDate;
-//import java.util.List;
-//import java.util.Map;
-//import java.util.stream.Collectors;
-//
-//public class View {
-//
-//    private final ConsoleIO io;
-//
-//    public View(ConsoleIO io) {
-//        this.io = io;
-//    }
-//
-//    public MainMenuOption selectMainMenuOption() {
-//        displayHeader("Main Menu");
-//        int min = Integer.MAX_VALUE;
-//        int max = Integer.MIN_VALUE;
-//        for (MainMenuOption option : MainMenuOption.values()) {
-//            if (!option.isHidden()) {
-//                io.printf("%s. %s%n", option.getValue(), option.getMessage());
-//            }
-//            min = Math.min(min, option.getValue());
-//            max = Math.max(max, option.getValue());
-//        }
-//
-//        String message = String.format("Select [%s-%s]: ", min, max - 1);
-//        return MainMenuOption.fromValue(io.readInt(message, min, max));
-//    }
-//
+package learn.dontwreckmyhouse.ui;
+
+import learn.dontwreckmyhouse.models.Reservation;
+import learn.dontwreckmyhouse.models.Guest;
+import learn.dontwreckmyhouse.models.Host;
+import org.springframework.cglib.core.Local;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+public class View {
+
+    private final ConsoleIO io;
+
+    public View(ConsoleIO io) {
+        this.io = io;
+    }
+
+    public MainMenuOption selectMainMenuOption() {
+        displayHeader("Main Menu");
+        int min = Integer.MAX_VALUE;
+        int max = Integer.MIN_VALUE;
+        for (MainMenuOption option : MainMenuOption.values()) {
+            if (!option.isHidden()) {
+                io.printf("%s. %s%n", option.getValue(), option.getMessage());
+            }
+            min = Math.min(min, option.getValue());
+            max = Math.max(max, option.getValue());
+        }
+
+        String message = String.format("Select [%s-%s]: ", min, max - 1);
+        return MainMenuOption.fromValue(io.readInt(message, min, max));
+    }
+
 //    public LocalDate getForageDate() {
 //        displayHeader(MainMenuOption.VIEW_FORAGES_BY_DATE.getMessage());
 //        return io.readLocalDate("Select a date [MM/dd/yyyy]: ");
@@ -79,13 +79,27 @@
 //        String message = String.format("Select a Category [1-%s]: ", index);
 //        return Category.values()[io.readInt(message, 1, index) - 1];
 //    }
-//
-//    public String getForagerState() {
-//        displayHeader("Search for Foragers by State");
-//        String state = io.readString("State: ");
-//        return state;
-//    }
-//
+
+    public String getHostId() {
+        String hostId = io.readString("Host ID: ");
+        return hostId;
+    }
+
+    public int getReservationId() {
+        int reservationId = io.readInt("Reservation ID: ");
+        return reservationId;
+    }
+
+    public LocalDate getNewStartDate() {
+        LocalDate newStartDate = io.readLocalDate("New Start Date: ");
+        return newStartDate;
+    }
+
+    public LocalDate getNewEndDate() {
+        LocalDate newEndDate = io.readLocalDate("New End Date: ");
+        return newEndDate;
+    }
+
 //    public Item chooseItem(List<Item> items) {
 //
 //        displayItems(items);
@@ -159,46 +173,59 @@
 //    public void enterToContinue() {
 //        io.readString("Press [Enter] to continue.");
 //    }
-//
-//    // display only
-//    public void displayHeader(String message) {
-//        io.println("");
-//        io.println(message);
-//        io.println("=".repeat(message.length()));
-//    }
-//
-//    public void displayException(Exception ex) {
-//        displayHeader("A critical error occurred:");
-//        io.println(ex.getMessage());
-//    }
-//
+
+    // display only
+    public void displayHeader(String message) {
+        io.println("");
+        io.println(message);
+        io.println("=".repeat(message.length()));
+    }
+
+    public void displayException(Exception ex) {
+        displayHeader("A critical error occurred:");
+        io.println(ex.getMessage());
+    }
+
 //    public void displayStatus(boolean success, String message) {
 //        displayStatus(success, List.of(message));
 //    }
-//
+
 //    public void displayStatus(boolean success, List<String> messages) {
 //        displayHeader(success ? "Success" : "Error");
 //        for (String message : messages) {
 //            io.println(message);
 //        }
 //    }
-//
-//    public void displayForages(List<Forage> forages) {
-//        if (forages == null || forages.isEmpty()) {
-//            io.println("No forages found.");
-//            return;
-//        }
-//        for (Forage forage : forages) {
-//            io.printf("%s %s - %s:%s - Value: $%.2f%n",
-//                    forage.getForager().getFirstName(),
-//                    forage.getForager().getLastName(),
-//                    forage.getItem().getName(),
-//                    forage.getItem().getCategory(),
-//                    forage.getValue()
-//            );
-//        }
-//    }
-//
+
+    public void displayErrors(List<String> messages) {
+        displayHeader("Error:");
+        for (String message : messages) {
+            io.println(message);
+        }
+    }
+
+    public void displayError(String message) {
+        displayHeader("Error:");
+        io.println(message);
+    }
+
+    public void displayReservations(List<Reservation> reservations) {
+        if (reservations == null || reservations.isEmpty()) {
+            io.println("No reservations found.");
+            return;
+        }
+        for (Reservation reservation : reservations) {
+            io.printf("%s %s - %s:%s - Total: $%.2f%n",
+                    reservation.getReservationId(),
+                    reservation.getStartDate(),
+                    reservation.getEndDate(),
+                    reservation.getGuestId(),
+                    reservation.getTotal()
+            );
+        }
+    }
+
+
 //    public void displayForagers(List<Forager> foragers) {
 //        if (foragers == null || foragers.isEmpty()) {
 //            io.println("No foragers found.");
@@ -242,4 +269,4 @@
 //        io.println("Category\tTotal Value ($)");
 //        categoryValues.forEach((category, value) -> io.printf("%s\t%f\n", category.name(), value));
 //    }
-//}
+}

@@ -1,11 +1,11 @@
 package learn.dontwreckmyhouse.data;
 
+import learn.dontwreckmyhouse.domain.Result;
 import learn.dontwreckmyhouse.models.Guest;
 
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class GuestFileRepository implements GuestRepository {
 
@@ -17,8 +17,8 @@ public class GuestFileRepository implements GuestRepository {
     }
 
     @Override
-    public List<Guest> findAll() {
-        ArrayList<Guest> result = new ArrayList<>();
+    public Result<List<Guest>> findAll() {
+        ArrayList<Guest> guests = new ArrayList<>();
         try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
 
             reader.readLine(); // read header
@@ -27,32 +27,39 @@ public class GuestFileRepository implements GuestRepository {
 
                 String[] fields = line.split(",", -1);
                 if (fields.length == 6) {
-                    result.add(deserialize(fields));
+                    guests.add(deserialize(fields));
                 }
             }
         } catch (IOException ex) {
-            // don't throw on read
+            return new Result<>("Failed to read guests from file.");
         }
-        return result;
+
+        return new Result<>(guests);
     }
 
     @Override
-    public Guest findByGuestId(int guestId) throws DataException {
-            List<Guest> all = findAll();
-            for (Guest guest : all) {
-                if (guest.getGuestId() == guestId) {
-                    return guest;
-                }
+    public Result<Guest> findByGuestId(int guestId) {
+        Result<List<Guest>> findResult = findAll();
+        if (!findResult.isSuccess()) {
+            return new Result<>("Failed to find all guests.");
+        }
+
+        List<Guest> allGuests = findResult.getPayload();
+        for (Guest guest : allGuests) {
+            if (guest.getGuestId() == guestId) {
+                return new Result<>(guest);
             }
-            return null;
         }
 
-    @Override
-    public List<Guest> findByEmail(String guestEmail) {
-        return findAll().stream()
-                .filter(i -> i.getState().equalsIgnoreCase(guestEmail))
-                .collect(Collectors.toList());
+        return new Result<>("Guest not found with that ID.");
     }
+
+//    @Override
+//    public List<Guest> findByEmail(String guestEmail) {
+//        return findAll().stream()
+//                .filter(i -> i.getState().equalsIgnoreCase(guestEmail))
+//                .collect(Collectors.toList());
+//    }
 
 
     private Guest deserialize(String[] fields) {

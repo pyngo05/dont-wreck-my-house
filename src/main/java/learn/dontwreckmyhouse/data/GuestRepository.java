@@ -1,14 +1,15 @@
 package learn.dontwreckmyhouse.data;
 
+import learn.dontwreckmyhouse.domain.Result;
 import learn.dontwreckmyhouse.models.Guest;
 
 import java.util.List;
 
 public interface GuestRepository {
 
-    List<Guest> findAll();
+    Result<List<Guest>> findAll();
 
-    Guest findByGuestId(int guestId) throws DataException;
+    Result<Guest> findByGuestId(int guestId);
 
-    List<Guest> findByEmail(String guestEmail);
+//    List<Guest> findByEmail(String guestEmail);
 }
