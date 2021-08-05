@@ -7,6 +7,7 @@ import learn.dontwreckmyhouse.models.Guest;
 import learn.dontwreckmyhouse.models.Host;
 import learn.dontwreckmyhouse.models.Reservation;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
@@ -52,7 +53,7 @@ public class Controller {
         } while (option != MainMenuOption.EXIT);
     }
 
-    private void editReservation() {
+    private void editReservation() throws DataException {
 
         // get host id from user
         String hostId = view.getHostId();
@@ -92,17 +93,32 @@ public class Controller {
         // at this point there is: reservation object, 2 new dates (start and end)
         reservation.setStartDate(newStartDate);
         reservation.setEndDate(newEndDate);
-        BigDecimal newTotal = reservationService.calculateReservationTotal(reservation);
-//        or
-        BigDecimal newTotal = reservationService.calculateReservationTotal(reservation, newStartDate, newEndDate);
+        Result<BigDecimal> calculationResult = reservationService.calculateReservationTotal(reservation);
+        if (!calculationResult.isSuccess()) {
+            view.displayErrors(calculationResult.getErrorMessages());
+            return;
+        }
+        reservation.setTotal(calculationResult.getPayload());
 
         // show the user the proposed changes
+        view.displayHeader("New reservation details:");
+        view.displayReservation(reservation);
 
         // ask the user if they want to confirm the edit
+        boolean doUpdate = view.getConfirmation("Confirm reservation update? [y/n]: ");
 
         // depending on choice, do the edit or do nothing
+        if (doUpdate) {
+            Result<Reservation> updateResult = reservationService.update(reservation);
+            if(!updateResult.isSuccess()) {
+                view.displayError("Failed to update reservation.");
+                return;
+            }
+            view.displayHeader("Updated.");
 
-        // print out result/success/etc
+        } else {
+            view.displayHeader("Cancelled update.");
+        }
     }
 
 //    private void viewByHost() {

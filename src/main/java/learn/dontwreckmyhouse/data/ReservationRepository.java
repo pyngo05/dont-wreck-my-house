@@ -16,9 +16,9 @@ public interface ReservationRepository {
 //    Reservation findByReservationId(int reservationId, UUID hostId) throws DataException;
 //
 //    Reservation add(Reservation reservation) throws DataException;
-//
-//    boolean update(Reservation reservation) throws DataException;
-//
+
+    Result<Reservation> update(Reservation reservation) throws DataException;
+
 //    boolean delete(Reservation reservation) throws DataException;
 
 }

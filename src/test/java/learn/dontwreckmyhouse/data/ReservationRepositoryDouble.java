@@ -3,7 +3,6 @@ package learn.dontwreckmyhouse.data;
 
 import learn.dontwreckmyhouse.domain.Result;
 import learn.dontwreckmyhouse.models.Reservation;
-import learn.dontwreckmyhouse.models.Guest;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -71,12 +70,12 @@ public class ReservationRepositoryDouble implements ReservationRepository {
 //    public Reservation add(Reservation reservation) throws DataException {
 //        return null;
 //    }
-//
-//    @Override
-//    public boolean update(Reservation reservation) throws DataException {
-//        return false;
-//    }
-//
+
+    @Override
+    public Result<Reservation> update(Reservation reservation) throws DataException {
+        return new Result<>(reservation); // always succeed
+    }
+
 //    @Override
 //    public boolean delete(Reservation reservation) throws DataException {
 //        return false;

@@ -1,5 +1,6 @@
 package learn.dontwreckmyhouse.domain;
 
+import learn.dontwreckmyhouse.data.HostRepositoryDouble;
 import learn.dontwreckmyhouse.data.ReservationRepository;
 import learn.dontwreckmyhouse.data.ReservationRepositoryDouble;
 import learn.dontwreckmyhouse.models.Reservation;
@@ -22,8 +23,9 @@ class ReservationServiceTest {
 
     @BeforeEach
     void setupTest() {
-        ReservationRepositoryDouble repo = new ReservationRepositoryDouble();
-        service = new ReservationService(repo);
+        ReservationRepositoryDouble reservationRepo = new ReservationRepositoryDouble();
+        HostRepositoryDouble hostRepo = new HostRepositoryDouble();
+        service = new ReservationService(reservationRepo, hostRepo);
     }
 
 //    @Test

@@ -8,7 +8,11 @@ import learn.dontwreckmyhouse.models.Reservation;
 import learn.dontwreckmyhouse.models.Guest;
 import learn.dontwreckmyhouse.models.Host;
 
+import java.math.BigDecimal;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.Period;
+import java.time.temporal.TemporalAmount;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -16,18 +20,19 @@ public class ReservationService {
 
     private final ReservationRepository reservationRepository;
 //    private final GuestRepository guestRepository;
-//    private final HostRepository hostRepository;
+    private final HostRepository hostRepository;
 
-//    public ReservationService(ReservationRepository reservationRepository, GuestRepository guestRepository, HostRepository hostRepository) {
-    public ReservationService(ReservationRepository reservationRepository) {
+    //    public ReservationService(ReservationRepository reservationRepository, GuestRepository guestRepository, HostRepository hostRepository) {
+    public ReservationService(ReservationRepository reservationRepository, HostRepository hostRepository) {
         this.reservationRepository = reservationRepository;
 //        this.guestRepository = guestRepository;
-//        this.hostRepository = hostRepository;
+        this.hostRepository = hostRepository;
     }
 
     public Result<List<Reservation>> findByHostId(UUID hostId) {
-
-        // TODO later: validations, is ID null, etc
+        if (hostId == null) {
+            return new Result<>("Invalid host ID.");
+        }
 
         Result<List<Reservation>> result = reservationRepository.findByHostId(hostId);
         if (!result.isSuccess()) {
@@ -35,6 +40,35 @@ public class ReservationService {
         }
 
         return new Result<>(result.getPayload());
+    }
+
+    public Result<BigDecimal> calculateReservationTotal(Reservation reservation) {
+        // get host
+        Result<Host> result = hostRepository.findByHostId(reservation.getHostId());
+        if (!result.isSuccess()) {
+            return new Result<>("Failed to find host with that ID.");
+        }
+
+        // get host's rates
+        Host host = result.getPayload();
+        BigDecimal standardRate = host.getStandardRate();
+        BigDecimal weekendRate = host.getWeekendRate();
+
+        // check days booked and their cost
+        LocalDate currentDate = reservation.getStartDate();
+        LocalDate endDate = reservation.getEndDate();
+        BigDecimal total = BigDecimal.valueOf(0);
+        while (!currentDate.isAfter(endDate)) {
+            if (currentDate.getDayOfWeek() == DayOfWeek.SATURDAY || currentDate.getDayOfWeek() == DayOfWeek.SUNDAY) {
+                total = total.add(weekendRate);
+            } else {
+                total = total.add(standardRate);
+            }
+
+            currentDate = currentDate.plusDays(1);
+        }
+
+        return new Result<>(total);
     }
 
 //    public Result<Reservation> add(Reservation reservation) throws DataException {
@@ -47,30 +81,17 @@ public class ReservationService {
 //
 //        return result;
 //    }
-//
-//    public Result<Reservation> update(Reservation reservation) throws DataException {
-//        Result<Reservation> result = new Result<Reservation>();
-//
-//        if (reservation.getReservationId() <= 0) {
-//            result.addErrorMessage("Reservation id is required.");
-//            return result;
-//        }
-//
-//        result = validate(reservation);
-//        if (!result.isSuccess()) {
-//            return result;
-//        }
-//
-//        boolean updated = reservationRepository.update(reservation);
-//        if (updated) {
-//            result.setPayload(reservation);
-//        } else {
-//            result.addErrorMessage("Reservation failed to update.");
-//        }
-//
-//        return result;
-//    }
-//
+
+    public Result<Reservation> update(Reservation reservation) throws DataException {
+
+        Result<Reservation> result = reservationRepository.update(reservation);
+        if (!result.isSuccess()) {
+            return new Result<>("Failed to update reservation.");
+        }
+
+        return new Result<>(reservation);
+    }
+
 //    public Result<Reservation> deleteById(int reservationId, UUID hostId) throws DataException {
 //        Result<Reservation> result = new Result<Reservation>();
 //

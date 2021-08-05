@@ -100,6 +100,10 @@ public class View {
         return newEndDate;
     }
 
+    public boolean getConfirmation(String prompt) {
+        return io.readBoolean(prompt);
+    }
+
 //    public Item chooseItem(List<Item> items) {
 //
 //        displayItems(items);
@@ -215,14 +219,21 @@ public class View {
             return;
         }
         for (Reservation reservation : reservations) {
-            io.printf("%s %s - %s:%s - Total: $%.2f%n",
-                    reservation.getReservationId(),
-                    reservation.getStartDate(),
-                    reservation.getEndDate(),
-                    reservation.getGuestId(),
-                    reservation.getTotal()
-            );
+            displayReservation(reservation);
         }
+    }
+
+    public void displayReservation(Reservation reservation) {
+        if (reservation == null) {
+            return;
+        }
+        io.printf("%s: %s - %s (guest %s). Total: $%.2f%n",
+                reservation.getReservationId(),
+                reservation.getStartDate(),
+                reservation.getEndDate(),
+                reservation.getGuestId(),
+                reservation.getTotal()
+        );
     }
 
 

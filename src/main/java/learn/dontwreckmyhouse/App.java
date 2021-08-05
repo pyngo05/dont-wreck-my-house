@@ -34,14 +34,13 @@ public class App {
         ConsoleIO io = new ConsoleIO();
         View view = new View(io);
 
-        String dataDirectory = "./data";
-        ReservationFileRepository reservationFileRepository = new ReservationFileRepository(dataDirectory);
+        ReservationFileRepository reservationFileRepository = new ReservationFileRepository("./data/reservations");
 
-//        TODO maybe later these will be needed
+//        TODO maybe later this will be needed
 //        GuestFileRepository guestFileRepository = new GuestFileRepository(dataDirectory);
-//        HostFileRepository hostFileRepository = new HostFileRepository(dataDirectory);
 
-        ReservationService reservationService = new ReservationService(reservationFileRepository);
+        HostFileRepository hostFileRepository = new HostFileRepository("./data/hosts.csv");
+        ReservationService reservationService = new ReservationService(reservationFileRepository, hostFileRepository);
 
         Controller controller = new Controller(reservationService, view);
         controller.run();

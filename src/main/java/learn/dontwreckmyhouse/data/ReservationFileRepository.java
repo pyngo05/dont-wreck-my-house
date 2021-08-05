@@ -40,7 +40,6 @@ public class ReservationFileRepository implements ReservationRepository {
 //        return overlappingReservations;
 //    }
 
-
     @Override
     // Find host's reservations by host ID
     public Result<List<Reservation>> findByHostId(UUID hostId) {
@@ -85,20 +84,27 @@ public class ReservationFileRepository implements ReservationRepository {
 //        writeToFile(all, reservation.getHostId());
 //        return reservation;
 //    }
-//
-//    @Override
-//    public boolean update(Reservation reservation) throws DataException {
-//        List<Reservation> all = findByHostId(reservation.getHostId());
-//        for (int i = 0; i < all.size(); i++) {
-//            if (all.get(i).getReservationId() == reservation.getReservationId()) {
-//                all.set(i, reservation);
-//                writeToFile(all, reservation.getHostId());
-//                return true;
-//            }
-//        }
-//        return false;
-//    }
-//
+
+    @Override
+    public Result<Reservation> update(Reservation reservation) throws DataException {
+        Result<List<Reservation>> result = findByHostId(reservation.getHostId());
+        if (!result.isSuccess()) {
+            return new Result<>("Failed to get reservations from file.");
+        }
+
+        List<Reservation> all = result.getPayload();
+        for (int i = 0; i < all.size(); i++) {
+            if (all.get(i).getReservationId() == reservation.getReservationId()) {
+                all.set(i, reservation);
+                writeToFile(all, reservation.getHostId());
+                break;
+            }
+        }
+
+        return new Result<>(reservation);
+
+    }
+
 //    @Override
 //    public boolean delete(Reservation reservation) throws DataException {
 //        List<Reservation> all = findByHostId(reservation.getHostId());

@@ -1,9 +1,11 @@
 package learn.dontwreckmyhouse.data;
 
+import learn.dontwreckmyhouse.domain.Result;
 import learn.dontwreckmyhouse.models.Host;
 
 import java.io.*;
 import java.math.BigDecimal;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -11,16 +13,17 @@ import java.util.UUID;
 public class HostFileRepository implements HostRepository{
 
     private static final String HEADER = "id,last_name,email,phone,address,city,state,postal_code,standard_rate,weekend_rate";
-    private final String filePath;
+    private final String hostsFilepath;
 
-    public HostFileRepository(String filePath) {
-        this.filePath = filePath;
+    public HostFileRepository(String hostsFilepath) {
+        this.hostsFilepath = hostsFilepath;
     }
 
     @Override
     public List<Host> findAll() {
         ArrayList<Host> result = new ArrayList<>();
-        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(hostsFilepath))) {
 
             reader.readLine(); // read header
 
@@ -38,11 +41,16 @@ public class HostFileRepository implements HostRepository{
     }
 
     @Override
-    public Host findByHostId(UUID hostId) {
-        return findAll().stream()
-                .filter(i -> i.getHostId() == hostId)
+    public Result<Host> findByHostId(UUID hostId) {
+        List<Host> all = findAll();
+        Host host = all.stream()
+                .filter(i -> i.getHostId().equals(hostId))
                 .findFirst()
                 .orElse(null);
+        if (host == null) {
+            return new Result<>("Couldn't find host.");
+        }
+        return new Result<>(host);
     }
 
     private String serialize(Host host) {
@@ -75,7 +83,7 @@ public class HostFileRepository implements HostRepository{
     }
 
     private void writeAll(List<Host> hosts) throws DataException {
-        try (PrintWriter writer = new PrintWriter(filePath)) {
+        try (PrintWriter writer = new PrintWriter(hostsFilepath)) {
 
             writer.println(HEADER);
 
