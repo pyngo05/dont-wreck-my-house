@@ -40,9 +40,9 @@ public class Controller {
 //                case VIEW_RESERVATIONS:
 //                    viewByHost();
 //                    break;
-//                case ADD_RESERVATION:
-//                    //addReservation();
-//                    break;
+                case ADD_RESERVATION:
+                    addReservation();
+                    break;
                 case EDIT_RESERVATION:
                     editReservation();
                     break;
@@ -89,8 +89,7 @@ public class Controller {
         LocalDate newStartDate = view.getNewStartDate();
         LocalDate newEndDate = view.getNewEndDate();
 
-        // recalculate total (probably ask the service to do that? can implement dummy method at first to save time finishing this part)
-        // at this point there is: reservation object, 2 new dates (start and end)
+        // recalculate total
         reservation.setStartDate(newStartDate);
         reservation.setEndDate(newEndDate);
         Result<BigDecimal> calculationResult = reservationService.calculateReservationTotal(reservation);
@@ -110,7 +109,7 @@ public class Controller {
         // depending on choice, do the edit or do nothing
         if (doUpdate) {
             Result<Reservation> updateResult = reservationService.update(reservation);
-            if(!updateResult.isSuccess()) {
+            if (!updateResult.isSuccess()) {
                 view.displayError("Failed to update reservation.");
                 return;
             }
@@ -121,7 +120,7 @@ public class Controller {
         }
     }
 
-//    private void viewByHost() {
+    //    private void viewByHost() {
 //        view.displayHeader(MainMenuOption.VIEW_RESERVATIONS.getMessage());
 //        UUID hostId = view.getHostReservations();
 //        Result<List<Reservation>> reservations = reservationService.findByHostId(hostId);
@@ -148,14 +147,76 @@ public class Controller {
 //    }
 //
 //
-//    private void addReservation() throws DataException {
+    private void addReservation() throws DataException {
+
+        // get host id from user
+        String hostId = view.getHostId();
+
+        //get guest id from user
+        String guestId = view.getGuestId();
+
+        // with that host id from the user, get reservations from service layer
+        Result<List<Reservation>> result = reservationService.findByHostId(UUID.fromString(hostId));
+        if (!result.isSuccess()) {
+            view.displayErrors(result.getErrorMessages());
+            return;
+        }
+
+        // show future reservations to user
+        List<Reservation> reservations = result.getPayload();
+        view.displayFutureReservations(reservations);
+
+        // ask user for start and end date for that reservation
+        LocalDate startDate = view.getNewStartDate();
+        LocalDate endDate = view.getNewEndDate();
+
+        // calculate total
+        Reservation reservation = new Reservation();
+//        TODO SET ALL BELOW TO RESERVATION
+//        private int reservationId;
+//        private BigDecimal total;
+//        private Host host;
+//        private Guest guest;
+        reservation.setStartDate(startDate);
+        reservation.setEndDate(endDate);
+        reservation.setGuestId(Integer.parseInt(guestId));
+        reservation.setHostId(UUID.fromString(hostId));
+        Result<BigDecimal> calculationResult = reservationService.calculateReservationTotal(reservation);
+        if (!calculationResult.isSuccess()) {
+            view.displayErrors(calculationResult.getErrorMessages());
+            return;
+        }
+        reservation.setTotal(calculationResult.getPayload());
+
+        // show the user the details
+        view.displayHeader("Reservation details:");
+        view.displayNewReservation(reservation);
+
+        // ask the user if they want to confirm
+        boolean addReservation = view.getConfirmation("Confirm reservation? [y/n]: ");
+
+        // depending on choice, do the edit or do nothing
+        if (addReservation) {
+            Result<Reservation> addNewReservation = reservationService.add(reservation);
+            if (!addNewReservation.isSuccess()) {
+                view.displayError("Failed to add reservation.");
+                return;
+            }
+            view.displayHeader("Added new reservation.");
+
+        } else {
+            view.displayHeader("Cancelled new reservation.");
+        }
+    }
+
+
 //        view.displayHeader(MainMenuOption.ADD_RESERVATION.getMessage());
 //        Guest guest = getGuest();
 //        if (guest == null) {
 //            return;
 //        }
-//        Host item = getHost();
-//        if (item == null) {
+//        Host host = getHost();
+//        if (host == null) {
 //            return;
 //        }
 //        Reservation reservation = view.makeReservation(reservation, host);
@@ -167,7 +228,7 @@ public class Controller {
 //            view.displayStatus(true, successMessage);
 //        }
 //    }
-
+//
 //    // support methods
 //    private Guest getGuest() {
 //        String lastNamePrefix = view.getForagerNamePrefix();
@@ -175,4 +236,4 @@ public class Controller {
 //        return view.chooseForager(foragers);
 //    }
 
-}
+    }

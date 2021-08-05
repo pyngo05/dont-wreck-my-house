@@ -36,11 +36,9 @@ public class App {
 
         ReservationFileRepository reservationFileRepository = new ReservationFileRepository("./data/reservations");
 
-//        TODO maybe later this will be needed
-//        GuestFileRepository guestFileRepository = new GuestFileRepository(dataDirectory);
-
+        GuestFileRepository guestFileRepository = new GuestFileRepository("./data/guests.csv");
         HostFileRepository hostFileRepository = new HostFileRepository("./data/hosts.csv");
-        ReservationService reservationService = new ReservationService(reservationFileRepository, hostFileRepository);
+        ReservationService reservationService = new ReservationService(reservationFileRepository, guestFileRepository, hostFileRepository);
 
         Controller controller = new Controller(reservationService, view);
         controller.run();

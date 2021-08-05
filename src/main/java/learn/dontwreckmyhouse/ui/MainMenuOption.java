@@ -2,17 +2,18 @@ package learn.dontwreckmyhouse.ui;
 
 public enum MainMenuOption {
 
-    EXIT(0, "Exit", false),
-    EDIT_RESERVATION(1, "Edit a Reservation", false);
+    EXIT(0, "Exit"),
+    EDIT_RESERVATION(1, "Edit a Reservation"),
+    ADD_RESERVATION(2, "Add a Reservation");
 
     private int value;
     private String message;
-    private boolean hidden;
 
-    private MainMenuOption(int value, String message, boolean hidden) {
+
+    private MainMenuOption(int value, String message) {
         this.value = value;
         this.message = message;
-        this.hidden = hidden;
+
     }
 
     public static MainMenuOption fromValue(int value) {
@@ -32,7 +33,4 @@ public enum MainMenuOption {
         return message;
     }
 
-    public boolean isHidden() {
-        return hidden;
-    }
 }

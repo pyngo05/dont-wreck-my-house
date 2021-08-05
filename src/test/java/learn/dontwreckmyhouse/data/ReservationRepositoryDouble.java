@@ -48,10 +48,10 @@ public class ReservationRepositoryDouble implements ReservationRepository {
 //        TODO add more reservations as needed
     }
 
-//    @Override
-//    public List<Reservation> findByDateRange(LocalDate startDate, LocalDate endDate, UUID hostId) {
-//        return null;
-//    }
+    @Override
+    public Result<List<Reservation>> findByDateRange(LocalDate startDate, LocalDate endDate, UUID hostId) {
+        return new Result<>(new ArrayList<Reservation>()); // always return no reservations
+    }
 
     @Override
     public Result<List<Reservation>> findByHostId(UUID hostId) {
@@ -65,11 +65,11 @@ public class ReservationRepositoryDouble implements ReservationRepository {
 //    public Reservation findByReservationId(int reservationId, UUID hostId) throws DataException {
 //        return null;
 //    }
-//
-//    @Override
-//    public Reservation add(Reservation reservation) throws DataException {
-//        return null;
-//    }
+
+    @Override
+    public Result<Reservation> add(Reservation reservation) throws DataException {
+        return new Result<>(reservation); // always succeed
+    }
 
     @Override
     public Result<Reservation> update(Reservation reservation) throws DataException {

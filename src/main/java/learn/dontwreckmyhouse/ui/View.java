@@ -24,9 +24,7 @@ public class View {
         int min = Integer.MAX_VALUE;
         int max = Integer.MIN_VALUE;
         for (MainMenuOption option : MainMenuOption.values()) {
-            if (!option.isHidden()) {
-                io.printf("%s. %s%n", option.getValue(), option.getMessage());
-            }
+            io.printf("%s. %s%n", option.getValue(), option.getMessage());
             min = Math.min(min, option.getValue());
             max = Math.max(max, option.getValue());
         }
@@ -85,18 +83,23 @@ public class View {
         return hostId;
     }
 
+    public String getGuestId() {
+        String guestId = io.readString("Guest ID: ");
+        return guestId;
+    }
+
     public int getReservationId() {
         int reservationId = io.readInt("Reservation ID: ");
         return reservationId;
     }
 
     public LocalDate getNewStartDate() {
-        LocalDate newStartDate = io.readLocalDate("New Start Date: ");
+        LocalDate newStartDate = io.readLocalDate("Start Date: ");
         return newStartDate;
     }
 
     public LocalDate getNewEndDate() {
-        LocalDate newEndDate = io.readLocalDate("New End Date: ");
+        LocalDate newEndDate = io.readLocalDate("End Date: ");
         return newEndDate;
     }
 
@@ -223,12 +226,42 @@ public class View {
         }
     }
 
+    public void displayFutureReservations(List<Reservation> reservations) {
+        LocalDate today = LocalDate.now();
+        if (reservations == null || reservations.isEmpty()) {
+            io.println("No reservations found.");
+            return;
+        }
+        for (Reservation reservation : reservations) {
+            if (reservation.getStartDate().isAfter(today)) {
+//                io.println("No future reservations found.");
+//                return;
+                displayReservation(reservation);
+            }
+            else {
+                return;
+            }
+        }
+    }
+
     public void displayReservation(Reservation reservation) {
         if (reservation == null) {
             return;
         }
         io.printf("%s: %s - %s (guest %s). Total: $%.2f%n",
                 reservation.getReservationId(),
+                reservation.getStartDate(),
+                reservation.getEndDate(),
+                reservation.getGuestId(),
+                reservation.getTotal()
+        );
+    }
+
+    public void displayNewReservation(Reservation reservation) {
+        if (reservation == null) {
+            return;
+        }
+        io.printf("%s - %s (guest %s). Total: $%.2f%n",
                 reservation.getStartDate(),
                 reservation.getEndDate(),
                 reservation.getGuestId(),

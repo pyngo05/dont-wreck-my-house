@@ -2,14 +2,12 @@ package learn.dontwreckmyhouse.data;
 
 import learn.dontwreckmyhouse.domain.Result;
 import learn.dontwreckmyhouse.models.Reservation;
-import org.springframework.cglib.core.Local;
 
 import java.io.*;
 import java.math.BigDecimal;
 import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -23,22 +21,22 @@ public class ReservationFileRepository implements ReservationRepository {
         this.directory = directory;
     }
 
-//    @Override
-//    public List<Reservation> findByDateRange(LocalDate startDate, LocalDate endDate, UUID hostId) {
-//        List<Reservation> overlappingReservations = new ArrayList<>();
-//
-//        List<Reservation> all = findByHostId(hostId);
-//        for (Reservation reservation : all) {
-//            if (reservation.getStartDate().isAfter(endDate) || reservation.getEndDate().isBefore(startDate)) {
-//                // reservation does not overlap start and end date, so skip it
-//                continue;
-//            } else {
-//                overlappingReservations.add(reservation);
-//            }
-//        }
-//
-//        return overlappingReservations;
-//    }
+    @Override
+    public Result<List<Reservation>> findByDateRange(LocalDate startDate, LocalDate endDate, UUID hostId) {
+        ArrayList<Reservation> overlappingReservations = new ArrayList<>();
+
+        Result<List<Reservation>> result = findByHostId(hostId);
+        for (Reservation reservation : result.getPayload()) {
+            if (reservation.getStartDate().isAfter(endDate) || reservation.getEndDate().isBefore(startDate)) {
+                // reservation does not overlap start and end date, so skip it
+                continue;
+            } else {
+                overlappingReservations.add(reservation);
+            }
+        }
+
+        return new Result<>(overlappingReservations);
+    }
 
     @Override
     // Find host's reservations by host ID
@@ -74,16 +72,22 @@ public class ReservationFileRepository implements ReservationRepository {
 //        }
 //        return null;
 //    }
-//
-//    @Override
-//    public Reservation add(Reservation reservation) throws DataException {
-//        List<Reservation> all = findByHostId(reservation.getHostId());
-//        int nextId = getNextId(all);
-//        reservation.setReservationId((nextId));
-//        all.add(reservation);
-//        writeToFile(all, reservation.getHostId());
-//        return reservation;
-//    }
+
+    @Override
+    public Result<Reservation> add(Reservation reservation) throws DataException {
+        Result<List<Reservation>> result = findByHostId(reservation.getHostId());
+        if (!result.isSuccess()) {
+            return new Result<>("Failed to get reservations from file.");
+        }
+
+        List<Reservation> all = result.getPayload();
+        int nextId = getNextId(all);
+        reservation.setReservationId((nextId));
+        all.add(reservation);
+        writeToFile(all, reservation.getHostId());
+        return new Result<>(reservation);
+    }
+
 
     @Override
     public Result<Reservation> update(Reservation reservation) throws DataException {
@@ -118,15 +122,15 @@ public class ReservationFileRepository implements ReservationRepository {
 //        return false;
 //    }
 
-//    private int getNextId(List<Reservation> reservations) {
-//        int maxId = 0;
-//        for (Reservation reservation : reservations) {
-//            if (maxId < reservation.getReservationId()) {
-//                maxId = reservation.getReservationId();
-//            }
-//        }
-//        return maxId + 1;
-//    }
+    private int getNextId(List<Reservation> reservations) {
+        int maxId = 0;
+        for (Reservation reservation : reservations) {
+            if (maxId < reservation.getReservationId()) {
+                maxId = reservation.getReservationId();
+            }
+        }
+        return maxId + 1;
+    }
 
     private String serialize(Reservation reservation) {
         return String.format("%s,%s,%s,%s,%s",
@@ -165,14 +169,14 @@ public class ReservationFileRepository implements ReservationRepository {
         return Paths.get(directory, hostId + ".csv").toString();
     }
 
-//    // Returns true if date is between start and end date, inclusively.
-//    private boolean dateIsBetween(LocalDate date, LocalDate start, LocalDate end) {
-//        if (date.equals(start) || date.equals(end)) {
-//            return true;
-//        }
-//        if (date.isBefore(end) && date.isAfter(start)) {
-//            return true;
-//        }
-//        return false;
-//    }
+    // Returns true if date is between start and end date, inclusively.
+    private boolean dateIsBetween(LocalDate date, LocalDate start, LocalDate end) {
+        if (date.equals(start) || date.equals(end)) {
+            return true;
+        }
+        if (date.isBefore(end) && date.isAfter(start)) {
+            return true;
+        }
+        return false;
+    }
 }
