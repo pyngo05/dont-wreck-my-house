@@ -76,8 +76,8 @@ public class ReservationRepositoryDouble implements ReservationRepository {
         return new Result<>(reservation); // always succeed
     }
 
-//    @Override
-//    public boolean delete(Reservation reservation) throws DataException {
-//        return false;
-//    }
+    @Override
+    public Result<Reservation> delete(Reservation reservation) throws DataException {
+        return new Result<>(reservation); // always succeed
+    }
 }

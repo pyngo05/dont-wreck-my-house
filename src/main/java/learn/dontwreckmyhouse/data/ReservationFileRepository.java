@@ -109,18 +109,25 @@ public class ReservationFileRepository implements ReservationRepository {
 
     }
 
-//    @Override
-//    public boolean delete(Reservation reservation) throws DataException {
-//        List<Reservation> all = findByHostId(reservation.getHostId());
-//        for (int i = 0; i < all.size(); i++) {
-//            if (all.get(i).getReservationId() == reservation.getReservationId()) {
-//                all.remove(i);      // remove
-//                writeToFile(all, reservation.getHostId());
-//                return true;
-//            }
-//        }
-//        return false;
-//    }
+    @Override
+    public Result<Reservation> delete(Reservation reservation) throws DataException {
+        Result<List<Reservation>> result = findByHostId(reservation.getHostId());
+        if (!result.isSuccess()) {
+            return new Result<>("Failed to get reservations from file.");
+        }
+
+        List<Reservation> all = result.getPayload();
+        for (int i = 0; i < all.size(); i++) {
+            if (all.get(i).getReservationId() == reservation.getReservationId()) {
+                all.remove(i);      // remove
+                writeToFile(all, reservation.getHostId());
+                break;
+            }
+        }
+
+        return new Result<>(reservation);
+
+    }
 
     private int getNextId(List<Reservation> reservations) {
         int maxId = 0;
@@ -148,7 +155,7 @@ public class ReservationFileRepository implements ReservationRepository {
         result.setStartDate(LocalDate.parse(fields[1]));
         result.setEndDate(LocalDate.parse(fields[2]));
         result.setGuestId(Integer.parseInt(fields[3]));
-        result.setTotal(BigDecimal.valueOf(Long.parseLong(fields[4])));
+        result.setTotal(BigDecimal.valueOf(Double.parseDouble(fields[4])));
         return result;
     }
 

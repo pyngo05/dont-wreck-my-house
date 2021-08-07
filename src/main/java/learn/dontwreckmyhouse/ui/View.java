@@ -7,6 +7,8 @@ import org.springframework.cglib.core.Local;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -29,7 +31,7 @@ public class View {
             max = Math.max(max, option.getValue());
         }
 
-        String message = String.format("Select [%s-%s]: ", min, max - 1);
+        String message = String.format("Select [%s-%s]: ", min, max);
         return MainMenuOption.fromValue(io.readInt(message, min, max));
     }
 
@@ -221,10 +223,23 @@ public class View {
             io.println("No reservations found.");
             return;
         }
+
+        // Sorting
+        Collections.sort(reservations, byDate);
+
+        for (int i=0; i<reservations.size(); i++)
+
         for (Reservation reservation : reservations) {
             displayReservation(reservation);
         }
     }
+
+        Comparator<Reservation> byDate = new Comparator<Reservation>() {
+        public int compare(Reservation r1, Reservation r2) {
+            if (r1.getStartDate().isBefore(r2.getStartDate())) return -1;
+            else return 1;
+        }
+    };
 
     public void displayFutureReservations(List<Reservation> reservations) {
         LocalDate today = LocalDate.now();
@@ -232,15 +247,19 @@ public class View {
             io.println("No reservations found.");
             return;
         }
+
+        int pastReservations = 0;
         for (Reservation reservation : reservations) {
-            if (reservation.getStartDate().isAfter(today)) {
-//                io.println("No future reservations found.");
-//                return;
+            if (reservation.getEndDate().isAfter(today)) {
                 displayReservation(reservation);
+            } else {
+                pastReservations++;
             }
-            else {
-                return;
-            }
+        }
+
+        // notify the user about all reservations being in the past
+        if (pastReservations == reservations.size()) {
+            io.println("No future reservations found.");
         }
     }
 

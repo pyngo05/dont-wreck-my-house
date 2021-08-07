@@ -22,7 +22,7 @@ public class ReservationService {
     private final GuestRepository guestRepository;
     private final HostRepository hostRepository;
 
-        public ReservationService(ReservationRepository reservationRepository, GuestRepository guestRepository, HostRepository hostRepository) {
+    public ReservationService(ReservationRepository reservationRepository, GuestRepository guestRepository, HostRepository hostRepository) {
 
         this.reservationRepository = reservationRepository;
         this.guestRepository = guestRepository;
@@ -77,9 +77,9 @@ public class ReservationService {
             return new Result<>("Invalid reservation.");
         }
 
-        Result<Reservation> addResult =  reservationRepository.add(reservation);
+        Result<Reservation> addResult = reservationRepository.add(reservation);
         if (!addResult.isSuccess()) {
-            return new Result<>("Failed to add reservation.");
+            return new Result<>("Failed to add reservation!");
         }
 
         return new Result<>(reservation);
@@ -95,27 +95,26 @@ public class ReservationService {
         return new Result<>(reservation);
     }
 
-//    public Result<Reservation> deleteById(int reservationId, UUID hostId) throws DataException {
-//        Result<Reservation> result = new Result<Reservation>();
-//
-//        // get reservation to make sure it exists
-//        Reservation reservation = reservationRepository.findByReservationId(reservationId, hostId);
-//        if (reservation == null) {
-//            result.addErrorMessage("Reservation not found for that host.");
-//            return result;
-//        }
-//
-//        // delete it
-//        boolean deleted = reservationRepository.delete(reservation);
-//        if (deleted) {
-//            result.setPayload(reservation);
-//        } else {
-//            result.addErrorMessage("Reservation failed to delete.");
-//        }
-//
-//        return result;
-//    }
-//
+    public int getNextId(List<Reservation> reservations) {
+        int maxId = 0;
+        for (Reservation reservation : reservations) {
+            if (maxId < reservation.getReservationId()) {
+                maxId = reservation.getReservationId();
+            }
+        }
+        return maxId + 1;
+    }
+
+        public Result<Reservation> deleteById(Reservation reservation) throws DataException {
+
+            Result<Reservation> result = reservationRepository.delete(reservation);
+            if (!result.isSuccess()) {
+                return new Result<>("Failed to delete reservation.");
+            }
+
+            return new Result<>(reservation);
+        }
+
     private Result<Reservation> validate(Reservation reservation) throws DataException {
 
         Result<Reservation> result = validateNulls(reservation);
@@ -168,47 +167,43 @@ public class ReservationService {
     }
 
     private Result<Reservation> validateFields(Reservation reservation) {
-        Result<Reservation> result = validateFields(reservation);
 
         //The start date must be in the future and cannot cancel a reservation that's in the past.
         if (reservation.getStartDate().isBefore(LocalDate.now())) {
-            result.addErrorMessage("Reservation date cannot be in the past.");
-            return result;
+            return new Result<>("Reservation date cannot be in the past.");
+
         }
 
         //The start date must come before the end date.
         if (reservation.getStartDate().isAfter(reservation.getEndDate())) {
-            result.addErrorMessage("Reservation start date cannot be after end date.");
-            return result;
+            return new Result<>("Reservation start date cannot be after end date.");
         }
 
         //Guest, host, and start and end dates are required.
         if (reservation.getGuest() == null || reservation.getHost() == null
-                || reservation.getStartDate() == null || reservation.getEndDate()== null ) {
-            result.addErrorMessage("Invalid reservation. Please re-enter reservation details.");
-            return result;
+                || reservation.getStartDate() == null || reservation.getEndDate() == null) {
+            return new Result<>("Invalid reservation. Please re-enter reservation details.");
         }
 
         //The reservation must not overlap existing reservation dates.
         Result<List<Reservation>> findByDateResult = reservationRepository.findByDateRange(reservation.getStartDate(), reservation.getEndDate(), reservation.getHostId());
         if (!findByDateResult.isSuccess()) {
-            result.addErrorMessage("Invalid date range.");
-            return result;
+            return new Result<>("Invalid date range.");
         }
         if (findByDateResult.getPayload().size() > 0) {
-            result.addErrorMessage("Reservations exist between those dates.");
+            return new Result<>("Reservations exist between those dates.");
         }
 
-        return result;
+        return new Result<>(reservation);
     }
 
     // validate that guest and host exists
     private Result<Reservation> validateChildrenExist(Reservation reservation) throws DataException {
 
-            if (reservation.getGuest().getGuestId() == 0
+        if (reservation.getGuest().getGuestId() == 0
                 || guestRepository.findByGuestId(reservation.getGuest().getGuestId()) == null) {
-                    return new Result<>("Guest does not exist.");
-                }
+            return new Result<>("Guest does not exist.");
+        }
 
         if (hostRepository.findByHostId(reservation.getHost().getHostId()) == null) {
             return new Result<>("Host does not exist.");

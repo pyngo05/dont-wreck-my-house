@@ -4,7 +4,9 @@ public enum MainMenuOption {
 
     EXIT(0, "Exit"),
     EDIT_RESERVATION(1, "Edit a Reservation"),
-    ADD_RESERVATION(2, "Add a Reservation");
+    ADD_RESERVATION(2, "Add a Reservation"),
+    VIEW_RESERVATIONS(3, "View Reservations by Host"),
+    CANCEL_RESERVATION(4,"Delete a Reservation" );
 
     private int value;
     private String message;

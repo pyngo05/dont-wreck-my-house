@@ -1,13 +1,10 @@
 package learn.dontwreckmyhouse.data;
 
 import learn.dontwreckmyhouse.domain.Result;
-import learn.dontwreckmyhouse.models.Host;
 import learn.dontwreckmyhouse.models.Guest;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 public class GuestRepositoryDouble implements GuestRepository {
 
@@ -32,7 +29,7 @@ public class GuestRepositoryDouble implements GuestRepository {
 
     @Override
     public Result<Guest> findByGuestId(int guestId) {
-        return null;
+        return null; // TODO implement for service tests
     }
 
 }
