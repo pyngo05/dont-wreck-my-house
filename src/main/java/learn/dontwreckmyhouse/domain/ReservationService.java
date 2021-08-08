@@ -5,16 +5,12 @@ import learn.dontwreckmyhouse.data.ReservationRepository;
 import learn.dontwreckmyhouse.data.GuestRepository;
 import learn.dontwreckmyhouse.data.HostRepository;
 import learn.dontwreckmyhouse.models.Reservation;
-import learn.dontwreckmyhouse.models.Guest;
 import learn.dontwreckmyhouse.models.Host;
 
 import java.math.BigDecimal;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.time.Period;
-import java.time.temporal.TemporalAmount;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class ReservationService {
 

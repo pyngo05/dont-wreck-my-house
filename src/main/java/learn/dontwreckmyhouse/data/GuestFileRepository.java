@@ -10,7 +10,6 @@ import java.util.List;
 public class GuestFileRepository implements GuestRepository {
 
     private final String filePath;
-    private static final String HEADER = "guest_id,first_name,last_name,email,phone,state";
 
     public GuestFileRepository(String filePath) {
         this.filePath = filePath;
@@ -54,14 +53,6 @@ public class GuestFileRepository implements GuestRepository {
         return new Result<>("Guest not found with that ID.");
     }
 
-//    @Override
-//    public List<Guest> findByEmail(String guestEmail) {
-//        return findAll().stream()
-//                .filter(i -> i.getState().equalsIgnoreCase(guestEmail))
-//                .collect(Collectors.toList());
-//    }
-
-
     private Guest deserialize(String[] fields) {
         Guest result = new Guest();
         result.setGuestId(Integer.parseInt(fields[0]));
@@ -73,31 +64,4 @@ public class GuestFileRepository implements GuestRepository {
         return result;
     }
 
-    private void writeAll(List<Guest> guests) throws DataException {
-        try (PrintWriter writer = new PrintWriter(filePath)) {
-
-            writer.println(HEADER);
-
-            if (guests == null) {
-                return;
-            }
-
-            for (Guest guest : guests) {
-                writer.println(serialize(guest));
-            }
-
-        } catch (FileNotFoundException ex) {
-            throw new DataException(ex);
-        }
-    }
-
-    private String serialize(Guest guest) {
-        return String.format("%s,%s,%s,%s,%s,%s",
-                guest.getGuestId(),
-                guest.getFirstName(),
-                guest.getLastName(),
-                guest.getEmail(),
-                guest.getPhone(),
-                guest.getState());
-    }
 }

@@ -15,7 +15,6 @@ public class ReservationFileRepository implements ReservationRepository {
 
     private static final String HEADER = "id,startDate,endDate,guestId,total";
     private final String directory;
-    private final String delimiter = ",";
 
     public ReservationFileRepository(String directory) {
         this.directory = directory;
@@ -60,18 +59,6 @@ public class ReservationFileRepository implements ReservationRepository {
 
         return new Result<>(reservations);
     }
-
-//    @Override
-//    // Finds reservations by id
-//    public Reservation findByReservationId(int reservationId, UUID hostId) throws DataException {
-//        List<Reservation> all = findByHostId(hostId);
-//        for (Reservation reservation : all) {
-//            if (reservation.getReservationId() == reservationId) {
-//                return reservation;
-//            }
-//        }
-//        return null;
-//    }
 
     @Override
     public Result<Reservation> add(Reservation reservation) throws DataException {
@@ -186,4 +173,5 @@ public class ReservationFileRepository implements ReservationRepository {
         }
         return false;
     }
+
 }

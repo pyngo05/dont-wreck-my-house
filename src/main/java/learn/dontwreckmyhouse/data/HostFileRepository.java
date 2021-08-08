@@ -5,12 +5,11 @@ import learn.dontwreckmyhouse.models.Host;
 
 import java.io.*;
 import java.math.BigDecimal;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public class HostFileRepository implements HostRepository{
+public class HostFileRepository implements HostRepository {
 
     private static final String HEADER = "id,last_name,email,phone,address,city,state,postal_code,standard_rate,weekend_rate";
     private final String hostsFilepath;
@@ -53,20 +52,6 @@ public class HostFileRepository implements HostRepository{
         return new Result<>(host);
     }
 
-    private String serialize(Host host) {
-        return String.format("%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
-                host.getHostId(),
-                host.getLastName(),
-                host.getEmail(),
-                host.getPhone(),
-                host.getAddress(),
-                host.getCity(),
-                host.getState(),
-                host.getPostalCode(),
-                host.getStandardRate(),
-                host.getWeekendRate());
-    }
-
     private Host deserialize(String[] fields) {
         Host result = new Host();
         result.setHostId(UUID.fromString(fields[0]));
@@ -82,21 +67,4 @@ public class HostFileRepository implements HostRepository{
         return result;
     }
 
-    private void writeAll(List<Host> hosts) throws DataException {
-        try (PrintWriter writer = new PrintWriter(hostsFilepath)) {
-
-            writer.println(HEADER);
-
-            if (hosts == null) {
-                return;
-            }
-
-            for (Host host : hosts) {
-                writer.println(serialize(host));
-            }
-
-        } catch (FileNotFoundException ex) {
-            throw new DataException(ex);
-        }
-    }
 }

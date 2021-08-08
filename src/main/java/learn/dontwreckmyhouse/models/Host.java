@@ -70,10 +70,6 @@ public class Host {
         return phone;
     }
 
-    public String getAddress() {
-        return address;
-    }
-
     public String getCity() {
         return city;
     }
@@ -84,10 +80,6 @@ public class Host {
 
     public void setState(String state) {
         this.state = state;
-    }
-
-    public String getPostalCode() {
-        return postalCode;
     }
 
     public BigDecimal getStandardRate() {

@@ -3,7 +3,6 @@ package learn.dontwreckmyhouse.models;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
-import java.time.*;
 
 public class Reservation {
 
@@ -15,7 +14,6 @@ public class Reservation {
     private BigDecimal total;
     private Host host;
     private Guest guest;
-//    private LocalDate date;
 
     public void setGuestId(int guestId) {
         this.guestId = guestId;
@@ -51,11 +49,6 @@ public class Reservation {
 
     public int getGuestId() {
         return guestId;
-    }
-
-    public static int getDayNumber(LocalDate date) {
-        DayOfWeek day = date.getDayOfWeek();
-        return day.getValue();
     }
 
     public BigDecimal getTotal() {

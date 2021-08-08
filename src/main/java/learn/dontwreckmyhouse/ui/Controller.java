@@ -172,14 +172,11 @@ public class Controller {
         }
     }
 
-
-
     private void viewByHost() {
         // get host id from user
         String hostId = view.getHostId();
         Host host = new Host();
         host.setHostId(UUID.fromString(hostId));
-//        TODO fix potential problem^
 
         // with that host id from the user, get reservations from service layer
         Result<List<Reservation>> result = reservationService.findByHostId(UUID.fromString(hostId));
@@ -199,13 +196,11 @@ public class Controller {
         String hostId = view.getHostId();
         Host host = new Host();
         host.setHostId(UUID.fromString(hostId));
-//        TODO fix potential problem^
 
         //get guest id from user
         String guestId = view.getGuestId();
         Guest guest = new Guest();
         guest.setGuestId(Integer.parseInt(guestId));
-//        TODO fix potential problem^
 
         // with that host id from the user, get reservations from service layer
         Result<List<Reservation>> result = reservationService.findByHostId(UUID.fromString(hostId));

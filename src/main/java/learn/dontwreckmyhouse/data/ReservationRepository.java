@@ -13,8 +13,6 @@ public interface ReservationRepository {
 
     Result<List<Reservation>> findByHostId(UUID hostId);
 
-//    Reservation findByReservationId(int reservationId, UUID hostId) throws DataException;
-//
     Result<Reservation> add(Reservation reservation) throws DataException;
 
     Result<Reservation> update(Reservation reservation) throws DataException;

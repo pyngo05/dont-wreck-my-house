@@ -37,19 +37,19 @@ class GuestFileRepositoryTest {
         assertEquals(1000, result.getPayload().size());
     }
 
-//    @Test
-//    void findByExistingGuestId() throws DataException {
-//        GuestFileRepository repo = new GuestFileRepository("./data/guests-test-data/guests-seed.csv");
-//        Guest guest = repo.findByGuestId(5);
-//        assertNotNull(guest);
-//        assertEquals("Berta", guest.getFirstName());
-//    }
-//
-//    @Test
-//    void shouldNotFindByMissingGuestId() throws DataException {
-//        Guest guest = repository.findByGuestId(1002);
-//        assertNull(guest);
-//    }
+    @Test
+    void findByExistingGuestId() throws DataException {
+        GuestFileRepository repo = new GuestFileRepository("./data/guests-test-data/guests-seed.csv");
+        Result<Guest> guest = repo.findByGuestId(5);
+        assertNotNull(guest);
+        assertEquals("Berta", guest.getPayload().getFirstName());
+    }
+
+    @Test
+    void shouldNotFindByMissingGuestId() throws DataException {
+        Result<Guest> guest = repository.findByGuestId(1002);
+        assertNull(guest.getPayload());
+    }
 
 //    @Test
 //    void shouldFindByExistingEmail() {

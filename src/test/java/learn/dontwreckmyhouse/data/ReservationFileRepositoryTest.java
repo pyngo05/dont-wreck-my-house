@@ -49,66 +49,88 @@ class ReservationFileRepositoryTest {
         assertFalse(result.isSuccess()); // expectedly fails because file does not exist
     }
 
-//    @Test
-//    void shouldFindByExistingReservationId() throws DataException {
-//        Reservation reservation = repository.findByReservationId(2, UUID.fromString("2e72f86c-b8fe-4265-b4f1-304dea8762db"));
-//        assertEquals(BigDecimal.valueOf(1300), reservation.getTotal());
-//    }
-//
-//    @Test
-//    void shouldAddValidReservation() throws DataException {
-//        Reservation reservation = new Reservation();
-//        reservation.setHostId(UUID.fromString("2e72f86c-b8fe-4265-b4f1-304dea8762db"));
-//        reservation.setReservationId(13);
-//        reservation.setStartDate(LocalDate.ofEpochDay(2022 - 01 - 24));
-//        reservation.setEndDate(LocalDate.ofEpochDay(2022 - 01 - 28));
-//        reservation.setGuestId(15);
-//        reservation.setTotal(BigDecimal.valueOf(1400));
-//
-//        reservation = repository.add(reservation);
-//
-//        assertEquals(BigDecimal.valueOf(1400), reservation.getTotal());
-//    }
-//
-//    @Test
-//    void shouldUpdateExisting() throws DataException {
-//        Reservation reservation = repository.findByReservationId(2, UUID.fromString("2e72f86c-b8fe-4265-b4f1-304dea8762db"));
-//        reservation.setGuestId(137);
-//        assertTrue(repository.update(reservation));
-//        assertNotNull(reservation);                        // confirm the reservation exists
-//        assertEquals(137, reservation.getGuestId());    // confirm the reservation was updated
-//    }
-//
-//    @Test
-//    void shouldNotUpdateMissing() throws DataException {
-//        Reservation doesNotExist = new Reservation();
-//        doesNotExist.setReservationId(1024);
-//        assertFalse(repository.update(doesNotExist)); // can't update a reservation that doesn't exist
-//    }
-//
-//    @Test
-//    void shouldDeleteByExistingId() throws DataException {
-//        List<Reservation> allReservations = repository.findByHostId(UUID.fromString("2e72f86c-b8fe-4265-b4f1-304dea8762db"));
-//        int countBefore = allReservations.size();
-//
-//        Reservation reservation = repository.findByReservationId(2, UUID.fromString("2e72f86c-b8fe-4265-b4f1-304dea8762db"));
-//        boolean deleted = repository.delete(reservation);
-//        assertTrue(deleted);
-//
-//        allReservations = repository.findByHostId(UUID.fromString("2e72f86c-b8fe-4265-b4f1-304dea8762db"));
-//        int countAfter = allReservations.size();
-//        assertEquals(countBefore - 1, countAfter);
-//    }
-//
-//    @Test
-//    void shouldNotReserveByOverlappingDateRange() {
-//        List<Reservation> reservations = repository.findByDateRange(startDate, endDate, UUID.fromString("2e72f86c-b8fe-4265-b4f1-304dea8762db"));
-//        assertEquals(1, reservations.size());
-//    }
-//
-//    @Test
-//    void shouldReserveByNonOverlappingDateRange() {
-//        List<Reservation> reservations = repository.findByDateRange(startDate2, endDate2, UUID.fromString("2e72f86c-b8fe-4265-b4f1-304dea8762db"));
-//        assertEquals(0, reservations.size());
-//    }
+    @Test
+    void shouldAddValidReservation() throws DataException {
+        Reservation reservation = new Reservation();
+        reservation.setHostId(UUID.fromString("2e72f86c-b8fe-4265-b4f1-304dea8762db"));
+        reservation.setReservationId(13);
+        reservation.setStartDate(LocalDate.of(2022, 01, 24));
+        reservation.setEndDate(LocalDate.of(2022, 01, 28));
+        reservation.setGuestId(15);
+        reservation.setTotal(BigDecimal.valueOf(1100));
+
+        Result<Reservation> result = repository.add(reservation);
+        assertTrue(result.isSuccess());
+        assertEquals(BigDecimal.valueOf(1100), result.getPayload().getTotal());
+    }
+
+    @Test
+    void shouldUpdateExisting() throws DataException {
+        // do update
+        Reservation reservation = new Reservation();
+        reservation.setHostId(UUID.fromString("2e72f86c-b8fe-4265-b4f1-304dea8762db"));
+        reservation.setReservationId(12);
+        reservation.setStartDate(LocalDate.of(2032, 01, 05));
+        reservation.setEndDate(LocalDate.of(2032, 01, 10));
+        reservation.setGuestId(735);
+        reservation.setTotal(BigDecimal.valueOf(1100));
+        Result<Reservation> result = repository.update(reservation);
+        assertTrue(result.isSuccess());
+
+        // check if repository was updated as requested
+        Result<List<Reservation>> findResult = repository.findByHostId(UUID.fromString("2e72f86c-b8fe-4265-b4f1-304dea8762db"));
+        assertTrue(findResult.isSuccess());
+        List<Reservation> reservations = findResult.getPayload();
+
+        // get reservation with id 12 to check it was updated
+        Reservation updatedReservation = null;
+        for (Reservation res : reservations) {
+            if (res.getReservationId() == 12) {
+                updatedReservation = res;
+            }
+        }
+        assertEquals(12, updatedReservation.getReservationId());
+        assertEquals(UUID.fromString("2e72f86c-b8fe-4265-b4f1-304dea8762db"), updatedReservation.getHostId());
+        assertEquals(LocalDate.of(2032, 01, 05), updatedReservation.getStartDate());
+        assertEquals(LocalDate.of(2032, 01, 10), updatedReservation.getEndDate());
+        assertEquals(735, updatedReservation.getGuestId());
+        assertEquals(BigDecimal.valueOf(1100.0), updatedReservation.getTotal());
+    }
+
+    @Test
+    void shouldDeleteByExistingId() throws DataException {
+        Result<List<Reservation>> allReservations = repository.findByHostId(UUID.fromString("2e72f86c-b8fe-4265-b4f1-304dea8762db"));
+        int countBefore = allReservations.getPayload().size();
+        List<Reservation> reservations = allReservations.getPayload();
+
+        Reservation deleteReservation = null;
+        for (Reservation res : reservations) {
+            if (res.getReservationId() == 12) {
+                deleteReservation = res;
+            }
+        }
+
+        Result<Reservation> deleted = repository.delete(deleteReservation);
+        assertTrue(deleted.isSuccess());
+
+        allReservations = repository.findByHostId(UUID.fromString("2e72f86c-b8fe-4265-b4f1-304dea8762db"));
+        int countAfter = allReservations.getPayload().size();
+        assertEquals(countBefore - 1, countAfter);
+    }
+
+    @Test
+    void shouldNotReserveByOverlappingDateRange() throws DataException {
+        Reservation reservation = new Reservation();
+        reservation.setHostId(UUID.fromString("2e72f86c-b8fe-4265-b4f1-304dea8762db"));
+        reservation.setReservationId(12);
+        reservation.setStartDate(LocalDate.of(2021, 06, 28));
+        reservation.setEndDate(LocalDate.of(2021, 06, 29));
+        reservation.setGuestId(15);
+        reservation.setTotal(BigDecimal.valueOf(200));
+
+        Result<List<Reservation>> result = repository.findByDateRange
+                (LocalDate.of(2021, 06, 28), LocalDate.of(2021, 06, 29), UUID.fromString("2e72f86c-b8fe-4265-b4f1-304dea8762db"));
+        assertTrue(result.isSuccess());
+    }
+
 }
