@@ -35,31 +35,4 @@ class ReservationServiceTest {
     void shouldCalculateCorrectReservationTotal() {
     }
 
-    @Test
-    void shouldAddValidReservation() {
-    }
-    @Test
-    void shouldNotAddInvalidReservation() {
-    }
-
-    @Test
-    void shouldUpdateExistingReservation() {
-    }
-
-    @Test
-    void shouldNotUpdateMissingReservation() {
-    }
-
-    @Test
-    void shouldGetNextId() {
-    }
-
-    @Test
-    void shouldDeleteByExistingReservationId() {
-    }
-
-    @Test
-    void shouldNotDeleteByMissingReservationId() {
-    }
-
 }
