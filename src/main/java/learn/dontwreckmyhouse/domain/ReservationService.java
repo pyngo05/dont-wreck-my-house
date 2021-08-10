@@ -4,6 +4,7 @@ import learn.dontwreckmyhouse.data.DataException;
 import learn.dontwreckmyhouse.data.ReservationRepository;
 import learn.dontwreckmyhouse.data.GuestRepository;
 import learn.dontwreckmyhouse.data.HostRepository;
+import learn.dontwreckmyhouse.models.Guest;
 import learn.dontwreckmyhouse.models.Reservation;
 import learn.dontwreckmyhouse.models.Host;
 
@@ -35,7 +36,25 @@ public class ReservationService {
             return new Result<>("Failed to get reservations for that host ID.");
         }
 
-        return new Result<>(result.getPayload());
+        // get host that is shared by all these reservations
+        Result<Host> hostResult = hostRepository.findByHostId(hostId);
+        if (!hostResult.isSuccess()) {
+            return new Result<>("Failed to get host.");
+        }
+
+        // set each reservation's host and guest using their hostID and guestId respectively
+        List<Reservation> reservations = result.getPayload();
+        for (Reservation res : reservations) {
+            Result<Guest> guestResult = guestRepository.findByGuestId(res.getGuestId());
+            if (!guestResult.isSuccess()) {
+                return new Result<>("Failed to get guest.");
+            }
+            res.setGuest(guestResult.getPayload());
+
+            res.setHost(hostResult.getPayload());
+        }
+
+        return new Result<>(reservations);
     }
 
     public Result<BigDecimal> calculateReservationTotal(Reservation reservation) {
@@ -82,8 +101,12 @@ public class ReservationService {
     }
 
     public Result<Reservation> update(Reservation reservation) throws DataException {
+        Result<Reservation> result = validate(reservation);
+        if (!result.isSuccess()) {
+            return new Result<>("Invalid reservation.");
+        }
 
-        Result<Reservation> result = reservationRepository.update(reservation);
+        result = reservationRepository.update(reservation);
         if (!result.isSuccess()) {
             return new Result<>("Failed to update reservation.");
         }
@@ -101,15 +124,15 @@ public class ReservationService {
         return maxId + 1;
     }
 
-        public Result<Reservation> deleteById(Reservation reservation) throws DataException {
+    public Result<Reservation> deleteById(Reservation reservation) throws DataException {
 
-            Result<Reservation> result = reservationRepository.delete(reservation);
-            if (!result.isSuccess()) {
-                return new Result<>("Failed to delete reservation.");
-            }
-
-            return new Result<>(reservation);
+        Result<Reservation> result = reservationRepository.delete(reservation);
+        if (!result.isSuccess()) {
+            return new Result<>("Failed to delete reservation.");
         }
+
+        return new Result<>(reservation);
+    }
 
     private Result<Reservation> validate(Reservation reservation) throws DataException {
 
